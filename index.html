@@ -5,350 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chrono Rangers (Sentai Sandbox)</title>
     <style>
-        * { box-sizing: border-box; }
         body {
             margin: 0;
-            padding: 10px;
-            background-color: #0d0e15;
-            color: #f0f3f8;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #111;
+            color: #fff;
+            font-family: system-ui, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             user-select: none;
-            overflow-x: hidden;
-        }
-        .header-container {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .title {
-            margin: 0;
-            letter-spacing: 3px;
-            color: #f1c40f;
-            font-size: 1.6rem;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
-        }
-        .subtitle {
-            font-size: 0.85rem;
-            color: #8a99ad;
-            margin-top: 4px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .badge {
-            background: #1e2638;
-            padding: 4px 12px;
-            border-radius: 4px;
-            border: 1px solid #2e3c54;
-            color: #e2e8f0;
-            font-weight: 600;
-        }
-        .badge-threat {
-            background: #2a1215;
-            border-color: #6b1d24;
-            color: #f87171;
-            font-weight: 700;
         }
         #gameCanvas {
-            background-color: #141923;
-            border: 3px solid #f1c40f;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(241, 196, 15, 0.2);
-            cursor: crosshair;
+            background-color: #161e16;
+            border: 4px solid #f1c40f;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
         }
         .ui-panel {
             margin-top: 10px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             flex-wrap: wrap;
             justify-content: center;
         }
-        .save-panel {
-            background: #161e2e;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #2e3c54;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .save-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #f1c40f;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
         button {
-            background: linear-gradient(135deg, #c0392b, #962d22);
+            background-color: #c0392b;
             color: white;
-            border: 1px solid #e74c3c;
+            border: none;
             padding: 8px 16px;
-            font-weight: 700;
-            font-size: 0.85rem;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: all 0.15s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-radius: 4px;
         }
-        button:hover {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(231, 76, 60, 0.3);
-        }
-        button:active {
-            transform: translateY(1px);
-        }
-        .cluck-btn {
-            background: linear-gradient(135deg, #d35400, #a04000);
-            border-color: #e67e22;
-        }
-        .cluck-btn:hover {
-            background: linear-gradient(135deg, #e67e22, #d35400);
-            box-shadow: 0 6px 14px rgba(230, 126, 34, 0.3);
-        }
-        .cluck-btn.active {
-            background: linear-gradient(135deg, #27ae60, #1e8449);
-            border-color: #2ecc71;
-            box-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
-        }
-        .audio-btn {
-            background: linear-gradient(135deg, #2980b9, #1f618d);
-            border-color: #3498db;
-        }
-        .audio-btn:hover {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-        }
-        .pause-btn {
-            background: linear-gradient(135deg, #8e44ad, #6c3483);
-            border-color: #9b59b6;
-        }
-        .pause-btn:hover {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-        }
-        .save-btn {
-            background: linear-gradient(135deg, #2c3e50, #1a252f);
-            border-color: #455a64;
-            padding: 6px 14px;
-            font-size: 0.8rem;
-        }
-        .save-btn:hover {
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-        }
-        .save-btn.active {
-            border: 2px solid #f1c40f;
-            background: linear-gradient(135deg, #2980b9, #1a5276);
-            box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
-        }
+        button:hover { background-color: #e74c3c; }
+        .cluck-btn { background-color: #d35400; }
+        .cluck-btn.active { background-color: #27ae60; }
+        .save-btn { background-color: #2c3e50; font-size: 0.85rem; }
+        .save-btn.active { border: 2px solid #f1c40f; background-color: #34495e; }
         .freeplay-container {
             margin-top: 8px;
-            background: linear-gradient(135deg, #27ae60, #1e8449);
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #2ecc71;
-            box-shadow: 0 0 12px rgba(46, 204, 113, 0.3);
+            background: #27ae60;
+            padding: 6px 12px;
+            border-radius: 4px;
             display: none;
             align-items: center;
             gap: 10px;
         }
         select {
-            background: #111827;
+            background: #111;
             color: #fff;
-            border: 1px solid #2ecc71;
-            padding: 4px 10px;
+            border: 1px solid #fff;
+            padding: 4px 8px;
             font-weight: bold;
             border-radius: 4px;
-            cursor: pointer;
-        }
-        .guide-text {
-            margin-top: 8px;
-            font-size: 0.8rem;
-            color: #64748b;
-            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="header-container">
-        <h2 class="title">CHRONO RANGERS: TOTAL DEFENSE</h2>
-        <div class="subtitle">
-            <span id="levelDisplay" class="badge">Campaign Level: 1 / 36</span>
-            <span id="phaseDisplay" class="badge">Phase: Squad Brawl</span>
-            <span id="monsterIntel" class="badge badge-threat">Threat: Loading...</span>
-            <span id="scoreDisplay" class="badge">Score: 00000</span>
-        </div>
+    <div style="text-align: center; margin-bottom: 5px;">
+        <h2 style="margin:0; letter-spacing: 2px; color: #f1c40f;">CHRONO RANGERS: TOTAL DEFENSE</h2>
+        <div id="levelDisplay" style="font-size: 0.9rem; color: #aaa;">Campaign Level: 1 / 36</div>
+        <div id="monsterIntel" style="font-size: 0.85rem; color: #e74c3c; font-weight: bold; margin-top: 2px;">Threat: Loading...</div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
     <div class="ui-panel">
-        <button onclick="nextLevel()">Advance Level</button>
+        <button onclick="nextLevel()">Cheat: Skip Level</button>
         <button id="cluckToggle" class="cluck-btn" onclick="toggleCluckProtocol()">Cluck Protocol: OFF</button>
-        <button id="audioToggle" class="audio-btn" onclick="toggleAudio()">Audio: ON 🔊</button>
-        <button id="pauseToggle" class="pause-btn" onclick="togglePause()">Pause ⏸️</button>
     </div>
 
     <div id="freeplayPanel" class="freeplay-container">
-        <span style="font-weight: bold; font-size: 0.85rem; color: #fff;">🏆 FREEPLAY UNLOCKED:</span>
+        <span style="font-weight: bold; font-size: 0.85rem;">🏆 FREEPLAY UNLOCKED:</span>
         <select id="freeplaySelect" onchange="selectFreeplayLevel(this.value)">
             <!-- Populated via script -->
         </select>
     </div>
 
-    <div class="save-panel">
-        <span class="save-label">💾 Save Profiles:</span>
+    <div class="ui-panel" style="margin-top: 5px; background: #222; padding: 8px; border-radius: 6px;">
+        <span style="font-size: 0.85rem; color: #aaa;">Save Profile:</span>
         <button id="save1" class="save-btn" onclick="selectSaveSlot(1)">Slot 1</button>
         <button id="save2" class="save-btn" onclick="selectSaveSlot(2)">Slot 2</button>
         <button id="save3" class="save-btn" onclick="selectSaveSlot(3)">Slot 3</button>
     </div>
 
-    <div class="guide-text">
-        🎮 Tactical Pathing: Rangers kite threats & track targets • Click Canvas to fire manual barrage or saber strike!
-    </div>
-
 <script>
 /**
- * CHRONO RANGERS - Tokusatsu Engine Core
- * License: CC0-1.0 Universal (Public Domain)
+ * CHRONO RANGERS - Tactical Sentai Engine Core
  * Architecture: 100% Self-Contained Vector Pipeline. Zero External Dependencies.
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Global Control State
+// Global Engine Control
 let currentLevel = 1;
 let currentSlot = 1;
-let gamePhase = "SQUAD_INIT"; // SQUAD_INIT, SQUAD_BRAWL or MEGAZORD_DUEL
+let gamePhase = "SQUAD_INIT"; 
 let cluckProtocolActive = false;
-let isPaused = false;
-let audioEnabled = true;
-let totalScore = 0;
-let screenShake = 0;
-let transitionFreeze = 0; // Freeze counter to prevent structural level-init flickering
+let transitionFreeze = 0; 
 let isGameCleared = false;
 
-// Web Audio API Synthesizer Engine
-let audioCtx = null;
+// Entities Pools
+let rangers = [];
+let enemies = [];
+let projectiles = [];
+let bossUnit = null;
 
-function initAudio() {
-    if (!audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-            audioCtx = new AudioContext();
-        }
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
+const RANGER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#e84393', '#fdcb6e', '#6c5ce7'];
 
-function playSound(type) {
-    if (!audioEnabled) return;
-    initAudio();
-    if (!audioCtx) return;
+const MONSTER_ARCHETYPES = [
+    { name: "Krybot Commander", color: "#7f8c8d" },
+    { name: "Lava Construct", color: "#d35400" },
+    { name: "Glacial Golem", color: "#3498db" },
+    { name: "Sinister Alien Fugitive", color: "#27ae60" }
+];
 
-    try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-
-        if (type === 'laser') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(700, now);
-            osc.frequency.exponentialRampToValueAtTime(180, now + 0.1);
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-            osc.start(now);
-            osc.stop(now + 0.1);
-        } else if (type === 'egg') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(320, now);
-            osc.frequency.linearRampToValueAtTime(550, now + 0.08);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } else if (type === 'hit') {
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(180, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } else if (type === 'explosion') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(140, now);
-            osc.frequency.exponentialRampToValueAtTime(25, now + 0.25);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-            osc.start(now);
-            osc.stop(now + 0.25);
-        } else if (type === 'slash') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(1200, now);
-            osc.frequency.exponentialRampToValueAtTime(150, now + 0.18);
-            gain.gain.setValueAtTime(0.22, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
-            osc.start(now);
-            osc.stop(now + 0.18);
-        } else if (type === 'megazord_beam') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.linearRampToValueAtTime(900, now + 0.3);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-            osc.start(now);
-            osc.stop(now + 0.3);
-        }
-    } catch (e) {
-        // Audio fallback ignore
-    }
-}
-
-function toggleAudio() {
-    audioEnabled = !audioEnabled;
-    const btn = document.getElementById('audioToggle');
-    if (audioEnabled) {
-        btn.innerText = "Audio: ON 🔊";
-        initAudio();
-    } else {
-        btn.innerText = "Audio: OFF 🔇";
-    }
-}
-
-function togglePause() {
-    isPaused = !isPaused;
-    const btn = document.getElementById('pauseToggle');
-    btn.innerText = isPaused ? "Resume ▶️" : "Pause ⏸️";
-}
-
-// Local Storage Save Profiles Logic & Freeplay Routing
-function populateFreeplaySelect() {
-    const selectEl = document.getElementById('freeplaySelect');
-    if (!selectEl) return;
-    selectEl.innerHTML = '';
-    for(let i = 1; i <= 36; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = `Level ${i}${i === 35 ? ' (A-Squad Rogue)' : (i === 36 ? ' (Omni-Crown Premier)' : '')}`;
-        selectEl.appendChild(opt);
-    }
+// Populate Freeplay Selector Options
+const selectEl = document.getElementById('freeplaySelect');
+for(let i = 1; i <= 36; i++) {
+    let opt = document.createElement('option');
+    opt.value = i;
+    opt.innerText = `Level ${i}`;
+    selectEl.appendChild(opt);
 }
 
 function loadProgress() {
@@ -358,13 +140,9 @@ function loadProgress() {
     const clearedState = localStorage.getItem(`chrono_slot_cleared_${currentSlot}`);
     isGameCleared = clearedState === "true";
     
-    const freeplayPanel = document.getElementById('freeplayPanel');
-    if (freeplayPanel) {
-        freeplayPanel.style.display = isGameCleared ? "flex" : "none";
-    }
-    const freeplaySelect = document.getElementById('freeplaySelect');
-    if (freeplaySelect) {
-        freeplaySelect.value = currentLevel;
+    document.getElementById('freeplayPanel').style.display = isGameCleared ? "flex" : "none";
+    if (isGameCleared) {
+        document.getElementById('freeplaySelect').value = currentLevel;
     }
     
     updateSlotUI();
@@ -393,7 +171,6 @@ function selectFreeplayLevel(lvl) {
 function updateSlotUI() {
     for (let i = 1; i <= 3; i++) {
         const btn = document.getElementById(`save${i}`);
-        if (!btn) continue;
         const slotVal = localStorage.getItem(`chrono_save_slot_${i}`) || 1;
         const slotClear = localStorage.getItem(`chrono_slot_cleared_${i}`) === "true";
         btn.innerText = `Slot ${i} (Lvl ${slotVal})${slotClear ? ' 🏆' : ''}`;
@@ -405,113 +182,78 @@ function updateSlotUI() {
     }
 }
 
-// Entities Pools
-let rangers = [];
-let enemies = [];
-let projectiles = [];
-let particles = [];
-let bossUnit = null;
-
-// Ranger Profiles
-const RANGER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#e84393', '#fdcb6e', '#6c5ce7'];
-const RANGER_NAMES = ['Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Orange', 'Cyan', 'Rose', 'Gold', 'Violet'];
-
-// Disney-Era Procedural Monster Generator Data Matrix
-const MONSTER_ARCHETYPES = [
-    { name: "Krybot Commander", color: "#7f8c8d", power: "Blaster Barrage", description: "S.P.D. Cybernetic Foot-Soldier Asset" },
-    { name: "Lava Construct", color: "#d35400", power: "Molten Cleave", description: "Moltor's Volcanic Infantry Variant" },
-    { name: "Glacial Golem", color: "#3498db", power: "Absolute Zero", description: "Flurious's Frozen Relic Construct" },
-    { name: "Sinister Alien Fugitive", color: "#27ae60", power: "Plasma Spate", description: "Delinquent indexed in the S.P.D. Galactic Database" }
-];
-
 function initLevel() {
+    // Lock engine phase immediately to prevent early game-over or next-level checks
     gamePhase = "SQUAD_INIT";
-    transitionFreeze = 35; // Hold state calculations briefly to prevent coordinate flashing
+    transitionFreeze = 45; 
     
     rangers = [];
     enemies = [];
     projectiles = [];
-    particles = [];
     bossUnit = null;
     
     document.getElementById('levelDisplay').innerText = `Campaign Level: ${currentLevel} / 36`;
-    document.getElementById('phaseDisplay').innerText = `Phase: Squad Brawl`;
-    const freeplaySelect = document.getElementById('freeplaySelect');
-    if (freeplaySelect) freeplaySelect.value = currentLevel;
+    if (isGameCleared) {
+        document.getElementById('freeplaySelect').value = currentLevel;
+    }
 
-    // 1. Spawn Active Ranger Objects Array (Scale squad count up to 10 based on progression)
     let activeSquadSize = currentLevel >= 25 ? 10 : (currentLevel >= 12 ? 8 : 5);
     for (let i = 0; i < activeSquadSize; i++) {
         rangers.push({
             id: i,
-            name: RANGER_NAMES[i],
-            x: 60 + Math.random() * 40,
-            y: 70 + i * (320 / activeSquadSize),
-            vx: 0,
-            vy: 0,
+            x: 60 + (i * 20),
+            y: 120 + (i * 28),
             color: RANGER_COLORS[i],
             hp: 120,
             maxHp: 120,
-            size: 12,
-            cooldown: Math.floor(Math.random() * 20),
+            size: 10,
             weaponMode: i % 2 === 0 ? "SWORD_SHIELD" : "MORPH_BLASTER",
             shieldUp: false,
-            shieldTime: 0,
             specialCooldown: 100 + Math.random() * 200,
             specialActiveTimer: 0
         });
     }
 
-    // 2. Generate Enemy Grunts or Chicken Overrides
     let enemyCount = 6 + currentLevel;
     for (let i = 0; i < enemyCount; i++) {
         enemies.push({
-            id: i,
-            x: 480 + Math.random() * 280,
-            y: 50 + Math.random() * 350,
-            vx: 0,
-            vy: 0,
-            hp: 35 + currentLevel * 5,
-            maxHp: 35 + currentLevel * 5,
-            size: cluckProtocolActive ? 12 : 11,
+            x: 450 + Math.random() * 300,
+            y: 40 + Math.random() * 360,
+            hp: 45,
             isChicken: cluckProtocolActive,
-            eggTimer: 40 + Math.random() * 120,
             shootTimer: 60 + Math.random() * 120,
-            wingPhase: Math.random() * Math.PI * 2
+            eggTimer: Math.random() * 100
         });
     }
 
-    // 3. Configure Level Boss/Final Grand Showdown Entity
     if (currentLevel === 35) {
         bossUnit = {
             name: "A-SQUAD ROGUE MEGAZORD",
             color: "#2c3e50",
-            borderColor: "#e74c3c",
+            borderColor: "#e74c3c", 
             size: 50,
             hp: 2500,
             maxHp: 2500,
             isASquad: true,
             isFinal: false,
-            attackCooldown: 40,
-            x: 580,
+            x: 600,
             y: 120
         };
-        document.getElementById('monsterIntel').innerText = `JUDGEMENT TIME: A-SQUAD ROGUE MEGAZORD (Rogue Elite Core Detected)`;
+        document.getElementById('monsterIntel').innerText = `JUDGEMENT TIME: ${bossUnit.name} (Rogue Elite Core Detected)`;
     } else if (currentLevel === 36) {
         bossUnit = {
             name: "OMNI-CROWN PREMIER",
-            color: "#0f172a",
+            color: "#000000",
             borderColor: "#9b59b6",
             size: 65,
             hp: 4000,
             maxHp: 4000,
             isASquad: false,
             isFinal: true,
-            attackCooldown: 50,
-            x: 580,
+            x: 600,
             y: 120
         };
-        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: OMNI-CROWN PREMIER (Ancient Cybernetic God Form)`;
+        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: ${bossUnit.name} (Ancient Cybernetic God Form)`;
     } else {
         let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
         bossUnit = {
@@ -523,783 +265,336 @@ function initLevel() {
             maxHp: 250 + (currentLevel * 60),
             isASquad: false,
             isFinal: false,
-            attackCooldown: 60,
-            x: 580,
+            x: 600,
             y: 120
         };
-        document.getElementById('monsterIntel').innerText = `THREAT: ${bossUnit.name}`;
+        document.getElementById('monsterIntel').innerText = `Target: ${bossUnit.name}`;
     }
-
-    gamePhase = "SQUAD_BRAWL";
 }
 
 function toggleCluckProtocol() {
     cluckProtocolActive = !cluckProtocolActive;
     const btn = document.getElementById('cluckToggle');
-    if (cluckProtocolActive) {
-        btn.innerText = "Cluck Protocol: ON 🐔";
-        btn.classList.add('active');
-    } else {
-        btn.innerText = "Cluck Protocol: OFF";
-        btn.classList.remove('active');
-    }
+    btn.innerText = cluckProtocolActive ? "Cluck Protocol: ON 🐔" : "Cluck Protocol: OFF";
+    btn.className = cluckProtocolActive ? "cluck-btn active" : "cluck-btn";
     initLevel();
 }
 
 function nextLevel() {
     if (currentLevel === 36) {
         isGameCleared = true;
-        const freeplayPanel = document.getElementById('freeplayPanel');
-        if (freeplayPanel) freeplayPanel.style.display = "flex";
-        totalScore += 2500;
-        document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
+        document.getElementById('freeplayPanel').style.display = "flex";
         saveProgress();
         initLevel();
     } else {
         currentLevel++;
-        totalScore += 250 * currentLevel;
-        document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
         saveProgress();
         initLevel();
     }
 }
 
-function spawnParticles(x, y, color, count = 8, speed = 3) {
-    for (let i = 0; i < count; i++) {
-        let angle = Math.random() * Math.PI * 2;
-        let spd = (0.5 + Math.random() * 0.8) * speed;
-        particles.push({
-            x: x,
-            y: y,
-            vx: Math.cos(angle) * spd,
-            vy: Math.sin(angle) * spd,
-            color: color,
-            life: 15 + Math.random() * 15,
-            maxLife: 30,
-            size: 2 + Math.random() * 3
-        });
-    }
-}
-
-function getNearestTarget(source, targets) {
-    let nearest = null;
-    let minDist = Infinity;
-    for (let i = 0; i < targets.length; i++) {
-        let t = targets[i];
-        if (!t || t.hp <= 0) continue;
-        let dx = t.x - source.x;
-        let dy = t.y - source.y;
-        let dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < minDist) {
-            minDist = dist;
-            nearest = t;
-        }
-    }
-    return nearest;
-}
-
-// Core Mathematical Calculation Loops
 function update() {
-    if (isPaused) return;
-
+    // If we are freezing or configuring structures, break immediately to block race conditions
     if (transitionFreeze > 0) {
         transitionFreeze--;
+        if (transitionFreeze === 0 && gamePhase === "SQUAD_INIT") {
+            gamePhase = "SQUAD_BRAWL"; // Hand off control to the brawl safely AFTER the freeze completely clears
+        }
         return;
     }
 
-    if (screenShake > 0) screenShake--;
-
-    // Update Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-        let pt = particles[i];
-        pt.x += pt.vx;
-        pt.y += pt.vy;
-        pt.life--;
-        if (pt.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-
     if (gamePhase === "SQUAD_BRAWL") {
-        
-        // RANGERS COMBAT PATH TRACKING
-        rangers.forEach(r => {
-            if (r.hp <= 0) return;
+        // Safe check: Only go to megazord duel if enemies are genuinely wiped out post-freeze
+        if (enemies.length === 0 && rangers.length > 0) {
+            gamePhase = "MEGAZORD_DUEL";
+            projectiles = [];
+            return;
+        }
 
-            let avoidX = 0;
-            let avoidY = 0;
-
-            // Repulsion from enemy grunts / chickens
-            enemies.forEach(e => {
-                let dx = r.x - e.x;
-                let dy = r.y - e.y;
-                let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                let dangerDist = 120;
-                if (dist < dangerDist) {
-                    let force = (dangerDist - dist) / dangerDist;
-                    avoidX += (dx / dist) * force * 4.2;
-                    avoidY += (dy / dist) * force * 4.2;
-                }
-            });
-
-            // Repulsion from incoming EGG / GOON hazards
-            projectiles.forEach(p => {
-                if (p.type === 'EGG' || p.type === 'GOON_BLAST') {
-                    let dx = r.x - p.x;
-                    let dy = r.y - p.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                    if (dist < 75) {
-                        let force = (75 - dist) / 75;
-                        avoidX += (dx / dist) * force * 4.8;
-                        avoidY += (dy / dist) * force * 4.8;
-                    }
-                }
-            });
-
-            // Ranger Squad Separation
-            rangers.forEach(other => {
-                if (other !== r && other.hp > 0) {
-                    let dx = r.x - other.x;
-                    let dy = r.y - other.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                    if (dist < 36) {
-                        let force = (36 - dist) / 36;
-                        avoidX += (dx / dist) * force * 2.0;
-                        avoidY += (dy / dist) * force * 2.0;
-                    }
-                }
-            });
-
-            // Weapon Loadout Movement Tactics
-            if (enemies.length > 0) {
-                let nearestEnemy = getNearestTarget(r, enemies);
-                if (nearestEnemy) {
-                    let dx = nearestEnemy.x - r.x;
-                    let dy = nearestEnemy.y - r.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-
-                    if (r.specialCooldown > 0) r.specialCooldown--;
-
-                    if (r.weaponMode === "SWORD_SHIELD") {
-                        // Sword Special: Shadow Strike Dash Protocol
-                        if (r.specialCooldown <= 0 && dist < 120 && dist > 30) {
-                            r.specialCooldown = 300 + Math.random() * 150;
-                            r.specialActiveTimer = 15;
-                            r.x += (dx / dist) * 55;
-                            r.y += (dy / dist) * 55;
-                            playSound('slash');
-                            spawnParticles(r.x, r.y, r.color, 10, 4);
-                            enemies.slice(0, 3).forEach(en => {
-                                en.hp -= 25;
-                                spawnParticles(en.x, en.y, '#f1c40f', 6, 2.5);
-                            });
-                        }
-
-                        if (r.specialActiveTimer > 0) {
-                            r.specialActiveTimer--;
-                        }
-
-                        if (dist > 28) {
-                            avoidX += (dx / dist) * 2.2;
-                            avoidY += (dy / dist) * 2.2;
-                            r.shieldUp = false;
-                        } else {
-                            nearestEnemy.hp -= 0.6;
-                            r.shieldUp = true;
-                            if (Math.random() < 0.1) {
-                                playSound('slash');
-                                spawnParticles(nearestEnemy.x, nearestEnemy.y, r.color, 4, 2);
-                            }
-                        }
-                    } else {
-                        // Blaster Special: Heavy Cluster Delta Blast Burst
-                        if (r.specialCooldown <= 0 && Math.random() < 0.05) {
-                            r.specialCooldown = 250 + Math.random() * 200;
-                            projectiles.push({
-                                x: r.x + 10,
-                                y: r.y,
-                                vx: 6.5,
-                                vy: (dy / dist) * 2,
-                                speed: 6.5,
-                                color: '#f39c12',
-                                type: 'DELTA_BURST',
-                                life: 140
-                            });
-                            playSound('megazord_beam');
-                            spawnParticles(r.x + 10, r.y, '#f39c12', 6, 2);
-                        }
-
-                        let idealRange = 200;
-                        if (dist > idealRange + 30) {
-                            avoidX += (dx / dist) * 1.2;
-                            avoidY += (dy / dist) * 1.2;
-                        } else if (dist < idealRange - 30) {
-                            avoidX -= (dx / dist) * 2.0;
-                            avoidY -= (dy / dist) * 2.0;
-                        }
-                    }
-                }
-            } else {
-                let dx = 150 - r.x;
-                let dy = (225 + r.id * 15) - r.y;
-                avoidX += dx * 0.02;
-                avoidY += dy * 0.02;
-            }
-
-            r.vx = r.vx * 0.82 + avoidX * 0.18;
-            r.vy = r.vy * 0.82 + avoidY * 0.18;
-
-            let speed = Math.sqrt(r.vx*r.vx + r.vy*r.vy);
-            let maxSpeed = 3.8;
-            if (speed > maxSpeed) {
-                r.vx = (r.vx / speed) * maxSpeed;
-                r.vy = (r.vy / speed) * maxSpeed;
-            }
-
-            r.x += r.vx;
-            r.y += r.vy;
-
-            r.x = Math.max(25, Math.min(canvas.width - 160, r.x));
-            r.y = Math.max(30, Math.min(canvas.height - 30, r.y));
-
-            if (r.shieldTime > 0) r.shieldTime--;
-
-            r.cooldown--;
-            if (r.cooldown <= 0 && enemies.length > 0 && r.weaponMode === "MORPH_BLASTER") {
-                let targetEnemy = getNearestTarget(r, enemies);
-                if (targetEnemy) {
-                    projectiles.push({
-                        x: r.x + 10,
-                        y: r.y,
-                        vx: 4,
-                        vy: (Math.random() - 0.5) * 1.5,
-                        speed: 7.5,
-                        color: r.color,
-                        type: 'TRACKING_LASER',
-                        target: targetEnemy,
-                        life: 160
-                    });
-                    playSound('laser');
-                    spawnParticles(r.x + 10, r.y, r.color, 3, 1.5);
-                }
-                r.cooldown = 22 + Math.floor(Math.random() * 15);
-            }
-        });
-
-        // ENEMY MOVEMENT & ATTACK LOGIC
-        enemies.forEach(enemy => {
-            let activeRangers = rangers.filter(r => r.hp > 0);
-            if (activeRangers.length > 0) {
-                let target = getNearestTarget(enemy, activeRangers) || activeRangers[0];
-                let dx = target.x - enemy.x;
-                let dy = target.y - enemy.y;
-                let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-
-                let moveSpeed = enemy.isChicken ? 1.1 : 0.85;
-                if (dist > 140) {
-                    enemy.x += (dx / dist) * moveSpeed;
-                    enemy.y += (dy / dist) * moveSpeed;
+        enemies.forEach(e => {
+            if (rangers.length > 0) {
+                let target = rangers[Math.floor(Math.random() * rangers.length)];
+                let dx = target.x - e.x;
+                let dy = target.y - e.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist > 150) {
+                    e.x += (dx / dist) * 0.9;
+                    e.y += (dy / dist) * 0.9;
                 }
 
-                if (enemy.isChicken) {
-                    enemy.wingPhase += 0.2;
-                    enemy.eggTimer--;
-                    if (enemy.eggTimer <= 0) {
-                        projectiles.push({
-                            x: enemy.x,
-                            y: enemy.y,
-                            type: 'EGG',
-                            vx: -2.5 + (Math.random() - 0.5),
-                            vy: (dy / dist) * 2.0,
-                            speed: 3.5,
-                            target: target,
-                            life: 180
-                        });
-                        playSound('egg');
-                        spawnParticles(enemy.x, enemy.y, '#f1c40f', 4, 1);
-                        enemy.eggTimer = 110 + Math.random() * 90;
+                if (e.isChicken) {
+                    e.eggTimer--;
+                    if (e.eggTimer <= 0) {
+                        projectiles.push({ x: e.x, y: e.y, type: 'EGG', vx: -2.5, vy: (Math.random() - 0.5) * 2 });
+                        e.eggTimer = 100 + Math.random() * 80;
                     }
                 } else {
-                    enemy.shootTimer--;
-                    if (enemy.shootTimer <= 0) {
-                        projectiles.push({
-                            x: enemy.x,
-                            y: enemy.y,
-                            type: 'GOON_BLAST',
-                            vx: -3.5,
-                            vy: (dy / dist) * 2,
-                            life: 160
-                        });
-                        playSound('laser');
-                        spawnParticles(enemy.x, enemy.y, '#e74c3c', 3, 1);
-                        enemy.shootTimer = 120 + Math.random() * 100;
+                    e.shootTimer--;
+                    if (e.shootTimer <= 0) {
+                        projectiles.push({ x: e.x, y: e.y, type: 'GOON_BLAST', vx: -3.5, vy: (target.y - e.y) / (dist || 1) * 2 });
+                        e.shootTimer = 140 + Math.random() * 100;
                     }
                 }
             }
         });
 
-        // PROJECTILE TRAJECTORIES
+        rangers.forEach(r => {
+            if (enemies.length > 0) {
+                let target = enemies[0];
+                let dx = target.x - r.x;
+                let dy = target.y - r.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (r.specialCooldown > 0) r.specialCooldown--;
+
+                if (r.weaponMode === "SWORD_SHIELD") {
+                    if (r.specialCooldown <= 0 && dist < 120 && dist > 30) {
+                        r.specialCooldown = 300 + Math.random() * 150;
+                        r.specialActiveTimer = 15; 
+                        r.x += (dx / dist) * 60; 
+                        r.y += (dy / dist) * 60;
+                        enemies.slice(0, 3).forEach(en => en.hp -= 25); 
+                    }
+
+                    if (r.specialActiveTimer > 0) {
+                        r.specialActiveTimer--;
+                    }
+
+                    if (dist > 25) {
+                        r.x += (dx / dist) * 2.0;
+                        r.y += (dy / dist) * 2.0;
+                        r.shieldUp = false;
+                    } else {
+                        target.hp -= 0.6;
+                        r.shieldUp = true;
+                    }
+                } else if (r.weaponMode === "MORPH_BLASTER") {
+                    if (dist < 180) {
+                        r.x -= (dx / dist) * 1.0;
+                    }
+
+                    if (r.specialCooldown <= 0 && Math.random() < 0.05) {
+                        r.specialCooldown = 250 + Math.random() * 200;
+                        projectiles.push({ x: r.x, y: r.y, type: 'DELTA_BURST', vx: 7, vy: (target.y - r.y) / (dist || 1) * 2.5, color: '#f39c12' });
+                    }
+
+                    if (Math.random() < 0.03) {
+                        projectiles.push({ x: r.x, y: r.y, type: 'RANGER_LASER', vx: 6, vy: (target.y - r.y) / (dist || 1) * 2, color: r.color });
+                    }
+                }
+            }
+        });
+
         for (let i = projectiles.length - 1; i >= 0; i--) {
             let p = projectiles[i];
+            p.x += p.vx;
+            p.y += p.vy;
 
-            if (p.type === 'TRACKING_LASER') {
-                if (!p.target || p.target.hp <= 0) {
-                    p.target = getNearestTarget(p, enemies);
-                }
+            if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                projectiles.splice(i, 1);
+                continue;
+            }
 
-                if (p.target && p.target.hp > 0) {
-                    let dx = p.target.x - p.x;
-                    let dy = p.target.y - p.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                    let desiredVx = (dx / dist) * p.speed;
-                    let desiredVy = (dy / dist) * p.speed;
-
-                    p.vx += (desiredVx - p.vx) * 0.18;
-                    p.vy += (desiredVy - p.vy) * 0.18;
-                }
-
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
-
-                if (Math.random() < 0.4) {
-                    spawnParticles(p.x, p.y, p.color, 1, 0.5);
-                }
-
+            if (p.type === 'RANGER_LASER') {
                 for (let j = enemies.length - 1; j >= 0; j--) {
                     let e = enemies[j];
-                    let dx = p.x - e.x;
-                    let dy = p.y - e.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < e.size + 6) {
-                        e.hp -= 15;
-                        totalScore += 20;
-                        document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
-                        playSound('hit');
-                        spawnParticles(e.x, e.y, p.color, 8, 2.5);
-
+                    if (Math.abs(p.x - e.x) < 14 && Math.abs(p.y - e.y) < 14) {
+                        e.hp -= 12;
                         projectiles.splice(i, 1);
-
-                        if (e.hp <= 0) {
-                            playSound('explosion');
-                            spawnParticles(e.x, e.y, e.isChicken ? '#f1c40f' : '#e74c3c', 16, 4);
-                            enemies.splice(j, 1);
-                        }
+                        if (e.hp <= 0) enemies.splice(j, 1);
                         break;
                     }
                 }
             } else if (p.type === 'DELTA_BURST') {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
-
-                if (Math.random() < 0.5) {
-                    spawnParticles(p.x, p.y, '#f39c12', 2, 1);
-                }
-
-                let hit = false;
                 for (let j = enemies.length - 1; j >= 0; j--) {
                     let e = enemies[j];
-                    let dx = p.x - e.x;
-                    let dy = p.y - e.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 32) {
-                        hit = true;
-                        break;
+                    if (Math.abs(p.x - e.x) < 35 && Math.abs(p.y - e.y) < 35) {
+                        e.hp -= 35;
+                        if (e.hp <= 0) enemies.splice(j, 1);
                     }
                 }
-
-                if (hit || p.life <= 0) {
-                    playSound('explosion');
-                    screenShake = 6;
-                    spawnParticles(p.x, p.y, '#f39c12', 20, 4);
-                    for (let j = enemies.length - 1; j >= 0; j--) {
-                        let e = enemies[j];
-                        let dx = p.x - e.x;
-                        let dy = p.y - e.y;
-                        let dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 60) {
-                            e.hp -= 35;
-                            totalScore += 30;
-                            if (e.hp <= 0) {
-                                spawnParticles(e.x, e.y, e.isChicken ? '#f1c40f' : '#e74c3c', 16, 4);
-                                enemies.splice(j, 1);
-                            }
-                        }
-                    }
-                    projectiles.splice(i, 1);
-                    continue;
-                }
-            } else if (p.type === 'EGG' || p.type === 'GOON_BLAST') {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
-
-                let activeRangers = rangers.filter(r => r.hp > 0);
-                for (let r of activeRangers) {
-                    let dx = p.x - r.x;
-                    let dy = p.y - r.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < r.size + 5) {
+                projectiles.splice(i, 1);
+            } else if (p.type === 'GOON_BLAST' || p.type === 'EGG') {
+                for (let k = rangers.length - 1; k >= 0; k--) {
+                    let r = rangers[k];
+                    if (Math.abs(p.x - r.x) < 12 && Math.abs(p.y - r.y) < 12) {
                         let damage = p.type === 'EGG' ? 8 : 15;
-                        if (r.shieldUp) damage *= 0.2;
+                        if (r.shieldUp) damage *= 0.2; 
                         r.hp -= damage;
-                        r.shieldTime = 12;
-                        playSound('hit');
-                        spawnParticles(r.x, r.y, '#f1c40f', 10, 2);
                         projectiles.splice(i, 1);
+                        if (r.hp <= 0) rangers.splice(k, 1);
                         break;
                     }
                 }
             }
-
-            if (p.life <= 0 || p.x < -20 || p.x > canvas.width + 20 || p.y < -20 || p.y > canvas.height + 20) {
-                if (projectiles[i] === p) {
-                    projectiles.splice(i, 1);
-                }
-            }
         }
 
-        if (enemies.length === 0) {
-            gamePhase = "MEGAZORD_DUEL";
-            document.getElementById('phaseDisplay').innerText = `Phase: Megazord Duel`;
-            bossUnit.x = 580;
-            bossUnit.y = 120;
-            bossUnit.hp = bossUnit.maxHp;
-            screenShake = 15;
-            playSound('megazord_beam');
+        if (rangers.length === 0) {
+            initLevel(); 
         }
-
-        let livingRangers = rangers.filter(r => r.hp > 0);
-        if (livingRangers.length === 0) {
-            rangers.forEach(r => r.hp = r.maxHp);
-        }
-
     } else if (gamePhase === "MEGAZORD_DUEL") {
-        
-        // MEGAZORD VS KAIJU BOSS DUEL PHASE
-        bossUnit.attackCooldown--;
+        if (!bossUnit) return; 
 
-        if (bossUnit.attackCooldown <= 0) {
-            bossUnit.attackCooldown = 70 + Math.random() * 30;
-            playSound('hit');
-            screenShake = 6;
-            spawnParticles(300, 225, bossUnit.borderColor, 12, 3);
-            
-            projectiles.push({
-                x: bossUnit.x,
-                y: bossUnit.y + 60,
-                vx: -6,
-                vy: (Math.random() - 0.5) * 2,
-                color: '#e74c3c',
-                type: 'KAIJU_FIRE',
-                life: 120
-            });
+        if (Math.random() < 0.18) {
+            projectiles.push({ x: 195, y: 194, type: 'SWAT_LASER', vx: 9, vy: (Math.random() - 0.5) * 2, color: '#06b6d4' });
+            projectiles.push({ x: 195, y: 234, type: 'SWAT_LASER', vx: 9, vy: (Math.random() - 0.5) * 2, color: '#06b6d4' });
         }
 
-        // Show-Accurate SWAT Megazord Forward Dual Blaster Cannons Volley
-        if (Math.random() < 0.15) {
-            projectiles.push({ x: 200, y: 198, type: 'SWAT_LASER', vx: 9, vy: (Math.random() - 0.5) * 2, color: '#06b6d4', life: 80 });
-            projectiles.push({ x: 200, y: 238, type: 'SWAT_LASER', vx: 9, vy: (Math.random() - 0.5) * 2, color: '#06b6d4', life: 80 });
-            playSound('laser');
-        }
-
-        // Rival Response Combat Return Firing Vectors (Level 35 Only)
-        if (bossUnit.isASquad && Math.random() < 0.12) {
-            projectiles.push({ x: bossUnit.x - 20, y: bossUnit.y + 55, type: 'ASQUAD_LASER', vx: -7.5, vy: (Math.random() - 0.5) * 3, color: '#e74c3c', life: 90 });
-            playSound('laser');
+        if (bossUnit.isASquad && Math.random() < 0.09) {
+            projectiles.push({ x: bossUnit.x - 25, y: bossUnit.y + 57, type: 'ASQUAD_LASER', vx: -7.5, vy: (Math.random() - 0.5) * 3, color: '#e74c3c' });
         }
 
         for (let i = projectiles.length - 1; i >= 0; i--) {
             let p = projectiles[i];
             p.x += p.vx;
             p.y += p.vy;
-            p.life--;
+
+            if (p.x < 0 || p.x > canvas.width) {
+                projectiles.splice(i, 1);
+                continue;
+            }
 
             if (p.type === 'SWAT_LASER') {
                 let hitWidth = bossUnit.isASquad ? 80 : (bossUnit.isFinal ? bossUnit.size * 2.5 : bossUnit.size * 1.5);
                 let hitHeight = bossUnit.isASquad ? 150 : (bossUnit.isFinal ? bossUnit.size * 3.5 : bossUnit.size * 2);
                 if (p.x >= bossUnit.x && p.x <= bossUnit.x + hitWidth && p.y >= bossUnit.y && p.y <= bossUnit.y + hitHeight) {
-                    bossUnit.hp -= 18;
-                    totalScore += 40;
-                    document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
-                    playSound('hit');
-                    spawnParticles(p.x, p.y, '#06b6d4', 8, 3);
+                    bossUnit.hp -= 25;
                     projectiles.splice(i, 1);
                 }
-            } else if (p.type === 'ASQUAD_LASER' && p.x <= 180 && p.x >= 100 && p.y >= 140 && p.y <= 290) {
-                screenShake = 5;
-                playSound('hit');
-                spawnParticles(p.x, p.y, '#e74c3c', 6, 2);
-                projectiles.splice(i, 1);
-            } else if (p.type === 'KAIJU_FIRE' && p.x < 220) {
-                screenShake = 8;
-                playSound('explosion');
-                spawnParticles(200, p.y, '#e74c3c', 12, 3);
-                projectiles.splice(i, 1);
-            } else if (p.life <= 0 || p.x < -20 || p.x > canvas.width + 20) {
-                projectiles.splice(i, 1);
+            }
+            
+            if (p.type === 'ASQUAD_LASER') {
+                if (p.x <= 180 && p.x >= 100 && p.y >= 140 && p.y <= 290) {
+                    projectiles.splice(i, 1); 
+                }
             }
         }
 
         if (bossUnit.hp <= 0) {
-            playSound('explosion');
-            screenShake = 25;
-            spawnParticles(bossUnit.x + 50, bossUnit.y + 100, '#f1c40f', 40, 6);
-            setTimeout(() => {
-                nextLevel();
-            }, 1000);
+            nextLevel();
         }
     }
 }
 
-// VECTOR DRAWING PIPELINES
 function draw() {
-    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (screenShake > 0) {
-        let rx = (Math.random() - 0.5) * screenShake;
-        let ry = (Math.random() - 0.5) * screenShake;
-        ctx.translate(rx, ry);
-    }
-
-    ctx.fillStyle = '#121622';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Cybernetic Grid
-    ctx.strokeStyle = '#1b2333';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-
-    // Transition Freeze Rendering Overlay
-    if (transitionFreeze > 0) {
-        ctx.fillStyle = '#f1c40f';
+    if (gamePhase === "SQUAD_INIT" || transitionFreeze > 0) {
+        ctx.fillStyle = '#fff';
         ctx.font = 'bold 18px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText("LOCKING TACTICAL MATRIX...", canvas.width / 2, canvas.height / 2);
-        ctx.restore();
+        ctx.fillText("SYNCHRONIZING REVOLUTION MATRIX...", 230, 220);
         return;
     }
 
     if (gamePhase === "SQUAD_BRAWL") {
-
-        // Draw Rangers
         rangers.forEach(r => {
-            if (r.hp <= 0) return;
-
-            if (r.shieldUp || r.shieldTime > 0) {
-                ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
-                ctx.strokeStyle = '#3498db';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(r.x, r.y, r.size + 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-            }
-
-            if (r.specialActiveTimer > 0) {
-                ctx.fillStyle = 'rgba(241, 196, 15, 0.3)';
-                ctx.beginPath();
-                ctx.arc(r.x, r.y, r.size + 10, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
+            ctx.save();
             ctx.fillStyle = r.color;
             ctx.beginPath();
             ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
 
-            ctx.fillStyle = '#111111';
-            ctx.beginPath();
-            ctx.ellipse(r.x + 2, r.y - 2, r.size * 0.6, r.size * 0.3, 0, 0, Math.PI * 2);
-            ctx.fill();
+            if (r.specialActiveTimer > 0) {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
 
             if (r.weaponMode === "SWORD_SHIELD") {
-                ctx.strokeStyle = '#f1c40f';
+                ctx.strokeStyle = '#f1c40f'; 
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(r.x + 4, r.y);
-                ctx.lineTo(r.x + 14, r.y - 8);
+                ctx.moveTo(r.x, r.y);
+                ctx.lineTo(r.x + 8, r.y - 6);
                 ctx.stroke();
+
+                if (r.shieldUp) {
+                    ctx.fillStyle = 'rgba(52, 152, 219, 0.6)'; 
+                    ctx.beginPath();
+                    ctx.arc(r.x + 6, r.y, 7, -Math.PI/2, Math.PI/2);
+                    ctx.fill();
+                }
             } else {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(r.x + 6, r.y - 2, 6, 4);
+                ctx.fillStyle = '#fff'; 
+                ctx.fillRect(r.x + 4, r.y - 2, 5, 3);
             }
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 9px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(r.id + 1, r.x, r.y + 11);
-
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(r.x - 12, r.y - 20, 24, 4);
-            ctx.fillStyle = r.hp > 40 ? '#2ecc71' : '#e74c3c';
-            ctx.fillRect(r.x - 12, r.y - 20, 24 * (r.hp / r.maxHp), 4);
+            ctx.restore();
         });
 
-        // Draw Enemy Mobs or Chickens
         enemies.forEach(e => {
+            ctx.save();
             if (e.isChicken) {
-                ctx.save();
-                ctx.translate(e.x, e.y);
-
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                ctx.arc(e.x, e.y, 9, 0, Math.PI*2);
                 ctx.fill();
-                ctx.strokeStyle = '#dcdde1';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#e67e22';
-                ctx.beginPath();
-                ctx.moveTo(-10, -2);
-                ctx.lineTo(-16, 1);
-                ctx.lineTo(-10, 4);
-                ctx.fill();
-
-                ctx.fillStyle = '#e74c3c';
-                ctx.beginPath();
-                ctx.arc(2, -12, 3, 0, Math.PI * 2);
-                ctx.arc(-2, -12, 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                let wingY = Math.sin(e.wingPhase) * 3;
-                ctx.fillStyle = '#f5f6fa';
-                ctx.beginPath();
-                ctx.ellipse(2, wingY, 6, 3, 0.3, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
+                ctx.fillStyle = '#e67e22'; 
+                ctx.fillRect(e.x - 11, e.y - 3, 3, 3);
             } else {
                 ctx.fillStyle = '#34495e';
-                ctx.beginPath();
-                ctx.moveTo(e.x, e.y - 12);
-                ctx.lineTo(e.x + 12, e.y);
-                ctx.lineTo(e.x, e.y + 12);
-                ctx.lineTo(e.x - 12, e.y);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#00d8d6';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.fillStyle = '#ff3f34';
-                ctx.fillRect(e.x - 4, e.y - 3, 8, 3);
+                ctx.fillRect(e.x - 8, e.y - 8, 16, 16);
+                ctx.fillStyle = '#c0392b'; 
+                ctx.fillRect(e.x - 6, e.y - 4, 10, 2);
             }
-
-            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-            ctx.fillRect(e.x - 12, e.y - 18, 24, 3);
-            ctx.fillStyle = '#00d8d6';
-            ctx.fillRect(e.x - 12, e.y - 18, 24 * Math.max(0, e.hp / e.maxHp), 3);
+            ctx.restore();
         });
 
-        // Draw Active Flight Projectiles
         projectiles.forEach(p => {
-            if (p.type === 'EGG') {
-                ctx.fillStyle = '#f1c40f';
+            ctx.save();
+            if (p.type === 'DELTA_BURST') {
+                ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.ellipse(p.x, p.y, 6, 4.5, 0.2, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-            } else if (p.type === 'GOON_BLAST') {
-                ctx.fillStyle = '#e74c3c';
+            } else {
+                ctx.fillStyle = p.type === 'EGG' ? '#f1c40f' : (p.type === 'GOON_BLAST' ? '#e74c3c' : p.color);
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, p.type === 'EGG' ? 4 : 3, 0, Math.PI * 2);
                 ctx.fill();
-            } else if (p.type === 'TRACKING_LASER') {
-                ctx.strokeStyle = p.color;
-                ctx.lineWidth = 3;
-                ctx.shadowColor = p.color;
-                ctx.shadowBlur = 6;
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x - p.vx * 2, p.y - p.vy * 2);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            } else if (p.type === 'DELTA_BURST') {
-                ctx.fillStyle = '#f39c12';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
             }
+            ctx.restore();
         });
 
     } else if (gamePhase === "MEGAZORD_DUEL") {
+        if (!bossUnit) return;
 
-        // Render Split Arena Line
-        ctx.strokeStyle = '#2c3e50';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(400, 0);
-        ctx.lineTo(400, canvas.height);
-        ctx.stroke();
-
-        // Render S.P.D. SWAT Megazord Vector Rig
         ctx.save();
-        // 1. Draw Tactical Wings / Thruster Arrays
+        // --- ALLIES: S.P.D. SWAT MEGAZORD HOVER CHASSIS ---
         ctx.fillStyle = '#1f2937';
         ctx.fillRect(60, 160, 45, 70);  
         ctx.fillRect(175, 160, 45, 70); 
 
-        // 2. Main Armored Heavy Chassis (S.P.D. Tactical Blue & Matte Black)
-        ctx.fillStyle = '#111827';
+        ctx.fillStyle = '#111827'; 
         ctx.fillRect(100, 140, 80, 150); 
-        ctx.fillStyle = '#1e40af';
+        ctx.fillStyle = '#1e40af'; 
         ctx.fillRect(115, 160, 50, 55);
 
-        // Command Head Armor & Cyan Scanner Optical Strip
         ctx.fillStyle = '#4b5563';
         ctx.fillRect(125, 110, 30, 30);
         ctx.fillStyle = '#06b6d4'; 
         ctx.fillRect(128, 120, 24, 5);
 
-        // SHOW-ACCURATE FORWARD DUAL TWIN CANNONS (Targeted directly at Kaiju)
+        // SHOW-ACCURATE DUAL TWIN CANNONS
         ctx.fillStyle = '#374151';
-        ctx.fillRect(160, 192, 38, 14);  // Upper Right Twin Cannon
-        ctx.fillRect(160, 232, 38, 14);  // Lower Right Twin Cannon
+        ctx.fillRect(160, 190, 35, 14);  
+        ctx.fillRect(160, 230, 35, 14);  
         ctx.fillStyle = '#06b6d4';
-        ctx.fillRect(194, 196, 6, 6);
-        ctx.fillRect(194, 236, 6, 6);
+        ctx.fillRect(190, 194, 6, 6);
+        ctx.fillRect(190, 234, 6, 6);
 
-        // Text Identifiers & Status
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 14px monospace';
-        ctx.textAlign = 'left';
+        ctx.font = 'bold 15px monospace';
         ctx.fillText("S.W.A.T. DUAL STRIKER PROTOCOL", 50, 85);
-        ctx.fillStyle = '#60a5fa';
-        ctx.font = '10px monospace';
-        ctx.fillText("STATUS: UNDEFEATED ENFORCEMENT", 50, 100);
-        ctx.restore();
 
-        // Render Boss Rig
+        // --- ADVERSARIES RENDERING ARRAY ---
         if (bossUnit.isFinal) {
             ctx.fillStyle = '#4c1d95';
-            ctx.fillRect(bossUnit.x - 20, bossUnit.y - 10, bossUnit.size * 2, bossUnit.size * 2.8);
-            ctx.fillStyle = bossUnit.color;
+            ctx.fillRect(bossUnit.x - 20, bossUnit.y - 30, bossUnit.size * 2.5, bossUnit.size * 3.5);
+            ctx.fillStyle = bossUnit.color; 
             ctx.beginPath();
             ctx.arc(bossUnit.x + 45, bossUnit.y + 60, 40, 0, Math.PI*2);
             ctx.fill();
-
             ctx.fillStyle = '#f1c40f';
             for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
                 let bx = bossUnit.x + 45 + Math.cos(angle) * 55;
@@ -1307,7 +602,6 @@ function draw() {
                 ctx.fillRect(bx - 6, by - 6, 12, 12);
             }
         } else if (bossUnit.isASquad) {
-            // Level 35: A-Squad Rogue Megazord
             ctx.fillStyle = '#2c3e50'; 
             ctx.fillRect(bossUnit.x, bossUnit.y, 80, 150);
             ctx.fillStyle = '#1a252f'; 
@@ -1318,105 +612,33 @@ function draw() {
             ctx.fillStyle = '#e74c3c'; 
             ctx.fillRect(bossUnit.x + 28, bossUnit.y - 20, 24, 5);
 
-            // Forward Facing Rogue Striker Weapon
             ctx.fillStyle = '#34495e';
             ctx.fillRect(bossUnit.x - 20, bossUnit.y + 50, 25, 15);
             ctx.fillStyle = '#e74c3c';
             ctx.fillRect(bossUnit.x - 25, bossUnit.y + 55, 5, 5);
         } else {
             ctx.fillStyle = bossUnit.color;
-            ctx.fillRect(bossUnit.x, bossUnit.y, 110, 180);
-            ctx.fillStyle = '#e67e22';
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath();
-                ctx.moveTo(bossUnit.x + 110, bossUnit.y + i * 40);
-                ctx.lineTo(bossUnit.x + 135, bossUnit.y + i * 40 + 15);
-                ctx.lineTo(bossUnit.x + 110, bossUnit.y + i * 40 + 30);
-                ctx.fill();
-            }
-
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillRect(bossUnit.x + 15, bossUnit.y + 20, 18, 12);
-            ctx.fillRect(bossUnit.x + 45, bossUnit.y + 20, 18, 12);
+            ctx.strokeStyle = bossUnit.borderColor;
+            ctx.lineWidth = 4;
+            ctx.fillRect(bossUnit.x, bossUnit.y, bossUnit.size * 1.5, bossUnit.size * 2);
+            ctx.strokeRect(bossUnit.x, bossUnit.y, bossUnit.size * 1.5, bossUnit.size * 2);
         }
 
-        // Draw SWAT Lasers, A-Squad Lasers & Boss Fireballs
+        // Projectiles Loop
         projectiles.forEach(p => {
-            if (p.type === 'SWAT_LASER' || p.type === 'ASQUAD_LASER') {
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 14, 4);
-                ctx.shadowColor = p.color;
-                ctx.shadowBlur = 6;
-            } else if (p.type === 'KAIJU_FIRE') {
-                ctx.fillStyle = '#e74c3c';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 14, 3);
         });
 
-        // Boss Health Matrix Bar
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(200, 25, 400, 22);
-        let ratio = Math.max(0, bossUnit.hp / bossUnit.maxHp);
-        ctx.fillStyle = ratio > 0.4 ? '#2ecc71' : '#e74c3c';
-        ctx.fillRect(200, 25, 400 * ratio, 22);
-        ctx.strokeStyle = '#f1c40f';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(200, 25, 400, 22);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${bossUnit.name.toUpperCase()} HEALTH`, 400, 41);
+        // Duel Interface Health Bar
+        ctx.fillStyle = '#7f1d1d';
+        ctx.fillRect(220, 30, 360, 16);
+        ctx.fillStyle = '#22c55e';
+        let healthRatio = Math.max(0, bossUnit.hp / bossUnit.maxHp);
+        ctx.fillRect(220, 30, 360 * healthRatio, 16);
+        ctx.restore();
     }
-
-    // Render Particle Engine Effects
-    particles.forEach(pt => {
-        ctx.fillStyle = pt.color;
-        ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-    });
-
-    ctx.restore();
 }
-
-// Canvas Click Event
-canvas.addEventListener('click', (evt) => {
-    initAudio();
-    const rect = canvas.getBoundingClientRect();
-    const clickX = evt.clientX - rect.left;
-    const clickY = evt.clientY - rect.top;
-
-    if (gamePhase === "SQUAD_BRAWL") {
-        rangers.forEach(r => {
-            if (r.hp > 0) {
-                projectiles.push({
-                    x: r.x,
-                    y: r.y,
-                    vx: (clickX - r.x) * 0.05,
-                    vy: (clickY - r.y) * 0.05,
-                    speed: 8,
-                    color: r.color,
-                    type: 'TRACKING_LASER',
-                    life: 140
-                });
-            }
-        });
-        playSound('laser');
-        spawnParticles(clickX, clickY, '#f1c40f', 10, 3);
-    } else if (gamePhase === "MEGAZORD_DUEL") {
-        bossUnit.hp -= 35;
-        totalScore += 100;
-        document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
-        screenShake = 12;
-        playSound('slash');
-        spawnParticles(clickX, clickY, '#00d8d6', 18, 5);
-    }
-});
 
 function runLoop() {
     update();
@@ -1424,8 +646,7 @@ function runLoop() {
     requestAnimationFrame(runLoop);
 }
 
-// Initialize system parameters
-populateFreeplaySelect();
+// Spark up system operations cleanly
 loadProgress();
 initLevel();
 runLoop();
