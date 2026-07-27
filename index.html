@@ -414,7 +414,22 @@ function initLevel() {
     }
 
     // 3. Configure Level Boss/Final Grand Showdown Entity
-    if (currentLevel === 36) {
+    if (currentLevel === 35) {
+        bossUnit = {
+            name: "A-SQUAD ROGUE MEGAZORD",
+            color: "#2c3e50",
+            borderColor: "#e74c3c",
+            size: 50,
+            hp: 2500,
+            maxHp: 2500,
+            isASquad: true,
+            isFinal: false,
+            attackCooldown: 40,
+            x: 580,
+            y: 120
+        };
+        document.getElementById('monsterIntel').innerText = `JUDGEMENT TIME: A-SQUAD ROGUE MEGAZORD (Rogue Elite Core Detected)`;
+    } else if (currentLevel === 36) {
         bossUnit = {
             name: "OMNI-CROWN PREMIER",
             color: "#0f172a",
@@ -422,12 +437,13 @@ function initLevel() {
             size: 65,
             hp: 4000,
             maxHp: 4000,
+            isASquad: false,
             isFinal: true,
             attackCooldown: 50,
             x: 580,
             y: 120
         };
-        document.getElementById('monsterIntel').innerText = `THREAT: OMNI-CROWN PREMIER (Ancient God Form)`;
+        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: OMNI-CROWN PREMIER (Ancient Cybernetic God Form)`;
     } else {
         let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
         bossUnit = {
@@ -437,6 +453,7 @@ function initLevel() {
             size: 32 + (currentLevel * 0.5),
             hp: 250 + (currentLevel * 60),
             maxHp: 250 + (currentLevel * 60),
+            isASquad: false,
             isFinal: false,
             attackCooldown: 60,
             x: 580,
@@ -828,6 +845,12 @@ function update() {
             playSound('laser');
         }
 
+        // Rival Response Combat Return Firing Vectors (Level 35 Only)
+        if (bossUnit.isASquad && Math.random() < 0.12) {
+            projectiles.push({ x: bossUnit.x - 20, y: bossUnit.y + 55, type: 'ASQUAD_LASER', vx: -7.5, vy: (Math.random() - 0.5) * 3, color: '#e74c3c', life: 90 });
+            playSound('laser');
+        }
+
         for (let i = projectiles.length - 1; i >= 0; i--) {
             let p = projectiles[i];
             p.x += p.vx;
@@ -835,7 +858,9 @@ function update() {
             p.life--;
 
             if (p.type === 'SWAT_LASER') {
-                if (p.x >= bossUnit.x && p.y >= bossUnit.y && p.y <= bossUnit.y + (bossUnit.size * 3.5)) {
+                let hitWidth = bossUnit.isASquad ? 80 : (bossUnit.isFinal ? bossUnit.size * 2.5 : bossUnit.size * 1.5);
+                let hitHeight = bossUnit.isASquad ? 150 : (bossUnit.isFinal ? bossUnit.size * 3.5 : bossUnit.size * 2);
+                if (p.x >= bossUnit.x && p.x <= bossUnit.x + hitWidth && p.y >= bossUnit.y && p.y <= bossUnit.y + hitHeight) {
                     bossUnit.hp -= 18;
                     totalScore += 40;
                     document.getElementById('scoreDisplay').innerText = `Score: ${String(totalScore).padStart(5, '0')}`;
@@ -843,6 +868,11 @@ function update() {
                     spawnParticles(p.x, p.y, '#06b6d4', 8, 3);
                     projectiles.splice(i, 1);
                 }
+            } else if (p.type === 'ASQUAD_LASER' && p.x <= 180 && p.x >= 100 && p.y >= 140 && p.y <= 290) {
+                screenShake = 5;
+                playSound('hit');
+                spawnParticles(p.x, p.y, '#e74c3c', 6, 2);
+                projectiles.splice(i, 1);
             } else if (p.type === 'KAIJU_FIRE' && p.x < 220) {
                 screenShake = 8;
                 playSound('explosion');
@@ -1102,6 +1132,23 @@ function draw() {
                 let by = bossUnit.y + 60 + Math.sin(angle) * 55;
                 ctx.fillRect(bx - 6, by - 6, 12, 12);
             }
+        } else if (bossUnit.isASquad) {
+            // Level 35: A-Squad Rogue Megazord
+            ctx.fillStyle = '#2c3e50'; 
+            ctx.fillRect(bossUnit.x, bossUnit.y, 80, 150);
+            ctx.fillStyle = '#1a252f'; 
+            ctx.fillRect(bossUnit.x + 15, bossUnit.y + 20, 50, 55);
+            
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(bossUnit.x + 25, bossUnit.y - 30, 30, 30);
+            ctx.fillStyle = '#e74c3c'; 
+            ctx.fillRect(bossUnit.x + 28, bossUnit.y - 20, 24, 5);
+
+            // Forward Facing Rogue Striker Weapon
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(bossUnit.x - 20, bossUnit.y + 50, 25, 15);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(bossUnit.x - 25, bossUnit.y + 55, 5, 5);
         } else {
             ctx.fillStyle = bossUnit.color;
             ctx.fillRect(bossUnit.x, bossUnit.y, 110, 180);
@@ -1119,9 +1166,9 @@ function draw() {
             ctx.fillRect(bossUnit.x + 45, bossUnit.y + 20, 18, 12);
         }
 
-        // Draw SWAT Lasers & Boss Fireballs
+        // Draw SWAT Lasers, A-Squad Lasers & Boss Fireballs
         projectiles.forEach(p => {
-            if (p.type === 'SWAT_LASER') {
+            if (p.type === 'SWAT_LASER' || p.type === 'ASQUAD_LASER') {
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x, p.y, 14, 4);
                 ctx.shadowColor = p.color;
