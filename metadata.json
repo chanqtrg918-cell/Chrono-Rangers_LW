@@ -1,0 +1,6 @@
+{
+  "name": "Chrono Rangers",
+  "description": "Tactical Sentai sandbox brawler engine featuring automated pathing, homing tracking lasers, and Megazord Kaiju boss battles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

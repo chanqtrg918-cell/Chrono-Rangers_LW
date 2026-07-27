@@ -1,11 +1,13 @@
-<div align="center">
+# Chrono Rangers ⚡🤖
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A lightweight, zero-dependency, 36-level tactical Tokusatsu brawler built completely inside a single standalone browser canvas environment. 
 
-  <h1>Built with AI Studio</h2>
+## 🎯 Gameplay Architecture
+1. **Squad Assembly:** Command a team of up to 10 uniquely color-coded rangers across a 36-level grid campaign.
+2. **Phase 1 (Goon Sweep):** Clear the map grid of regular enemy forces and specialized mini-boss units.
+3. **Phase 2 (Megazord Showdown):** Once the grid is clear, the monster grows massive. The squad combines into a unified giant robot entity for a dedicated health-bar duel.
+4. **The Cluck Protocol (Secret Variable):** Activating the debug toggle translates default grunt minion object indices into aggressive chickens that dynamically lay exploding egg hazards across the field matrix.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
-
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+## 🛠️ Secure Zero-Dependency Constraints
+* Pure Vanilla HTML5 Canvas/JS layout.
+* No asset pre-fetching, external tracking nodes, or framework builds.
