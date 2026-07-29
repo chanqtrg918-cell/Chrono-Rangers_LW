@@ -1,100 +1,231 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-slate-950 text-slate-100 antialiased font-mono">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chrono Rangers (Sentai Sandbox)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            margin: 0;
-            background-color: #111;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            user-select: none;
+        /* Custom neon borders & glow utilities */
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2), inset 0 0 10px rgba(6, 182, 212, 0.05);
         }
-        #hud {
-            width: 800px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            background: #222;
-            padding: 8px 16px;
-            box-sizing: border-box;
-            border: 2px solid #555;
-            border-bottom: none;
+        .neon-text-cyan {
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
         }
-        #gameCanvas {
-            background-color: #161e16;
-            border: 4px solid #f1c40f;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        .canvas-container {
+            position: relative;
+            background: radial-gradient(circle at center, #131c2e 0%, #080d1a 100%);
         }
-        .ui-panel {
-            width: 800px;
-            margin-top: 8px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-            background: #222;
-            padding: 8px 16px;
-            box-sizing: border-box;
-            border: 2px solid #555;
-            border-top: none;
+        /* Tactical custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
         }
-        button {
-            background-color: #c0392b;
-            color: white;
-            border: 1px solid #7f8c8d;
-            padding: 6px 12px;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-            cursor: pointer;
+        ::-webkit-scrollbar-track {
+            background: #090d16;
         }
-        button:hover { background-color: #e74c3c; }
-        .cluck-btn { background-color: #d35400; }
-        .cluck-btn.active { background-color: #27ae60; }
-        select {
-            background: #111;
-            color: #fff;
-            border: 1px solid #fff;
-            padding: 4px 8px;
-            font-family: 'Courier New', Courier, monospace;
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-2 md:p-4 gap-3 select-none">
 
-    <div id="hud">
-        <div id="levelDisplay" style="font-weight: bold; color: #f1c40f;">CAMPAIGN LEVEL: 01/36</div>
-        <div id="monsterIntel" style="color: #e74c3c; font-weight: bold;">THREAT: INITIALIZING...</div>
-    </div>
-
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
-
-    <div class="ui-panel">
-        <div>
-            <button onclick="nextLevel()">SKIP LEVEL</button>
-            <button id="cluckToggle" class="cluck-btn" onclick="toggleCluckProtocol()">CLUCK PROTOCOL: OFF</button>
+    <!-- 1. FIXED TOP HEADER FOR TEAM STATUS & THREAT INTEL -->
+    <header class="w-full bg-slate-900/90 border border-cyan-500/30 rounded-lg p-3 neon-border-cyan flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shrink-0">
+        <!-- Brand & Campaign Level Info -->
+        <div class="flex flex-col gap-1 shrink-0">
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 bg-cyan-400 rounded-full animate-ping"></span>
+                <h1 class="text-base md:text-lg font-bold text-cyan-400 tracking-wider neon-text-cyan">
+                    CHRONO RANGERS <span class="text-slate-400 text-xs font-normal">// CHRONO COMMAND</span>
+                </h1>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span id="levelDisplay" class="text-amber-400 font-semibold bg-amber-950/40 border border-amber-500/40 px-2 py-0.5 rounded">
+                    Campaign Level: 1 / 36
+                </span>
+                <span id="monsterIntel" class="text-red-400 font-semibold bg-red-950/40 border border-red-500/40 px-2 py-0.5 rounded truncate max-w-sm">
+                    Threat: Loading Intel...
+                </span>
+            </div>
         </div>
-        <div id="freeplayPanel" style="display: none; align-items: center; gap: 8px;">
-            <span style="font-weight: bold; font-size: 0.85rem; color: #27ae60;">FREEPLAY:</span>
-            <select id="freeplaySelect" onchange="selectFreeplayLevel(this.value)"></select>
+
+        <!-- Real-Time Team Status Grid -->
+        <div class="flex flex-col gap-1 grow min-w-0">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono tracking-wider">
+                <span>SQUAD HEALTH MONITOR // S.P.D. TELEMETRY</span>
+                <span id="squadCountBadge" class="text-cyan-400 font-bold">ACTIVE</span>
+            </div>
+            <div id="teamStatusGrid" class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+                <!-- Dynamically populated via JS -->
+            </div>
         </div>
-    </div>
+    </header>
+
+    <!-- 2. MAIN LAYOUT: LEFT COMMAND DOCK + CENTER CANVAS VIEWPORT -->
+    <main class="w-full flex flex-col lg:flex-row items-start gap-3 grow min-h-0">
+        
+        <!-- LEFT-ALIGNED VERTICAL COMMAND DOCK -->
+        <aside class="w-full lg:w-72 bg-slate-900/80 border border-slate-800 rounded-lg p-3 flex flex-col gap-3 shrink-0">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h2 class="text-xs font-bold text-cyan-400 tracking-wider flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    COMMAND DOCK
+                </h2>
+                <span class="text-[10px] text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">SYS_CTRL</span>
+            </div>
+
+            <!-- Save Profile Slots -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">SAVE PROFILES</span>
+                <div class="grid grid-cols-1 gap-1.5">
+                    <button id="save1" onclick="selectSaveSlot(1)" class="w-full bg-slate-950 hover:bg-slate-800 text-slate-300 text-xs font-mono font-medium py-2 px-3 rounded border border-slate-800 transition-all text-left flex items-center justify-between">
+                        <span>Slot 1</span>
+                        <span id="save1Badge" class="text-[10px] text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded">Lvl 1</span>
+                    </button>
+                    <button id="save2" onclick="selectSaveSlot(2)" class="w-full bg-slate-950 hover:bg-slate-800 text-slate-300 text-xs font-mono font-medium py-2 px-3 rounded border border-slate-800 transition-all text-left flex items-center justify-between">
+                        <span>Slot 2</span>
+                        <span id="save2Badge" class="text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded">Lvl 1</span>
+                    </button>
+                    <button id="save3" onclick="selectSaveSlot(3)" class="w-full bg-slate-950 hover:bg-slate-800 text-slate-300 text-xs font-mono font-medium py-2 px-3 rounded border border-slate-800 transition-all text-left flex items-center justify-between">
+                        <span>Slot 3</span>
+                        <span id="save3Badge" class="text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded">Lvl 1</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tactical Overrides -->
+            <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-800">
+                <span class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">TACTICAL OVERRIDES</span>
+                
+                <button onclick="nextLevel()" class="w-full bg-red-950/50 hover:bg-red-900/80 text-red-300 border border-red-700/50 text-xs font-mono font-bold py-2 px-3 rounded transition-all flex items-center justify-between">
+                    <span>SKIP LEVEL</span>
+                    <span class="text-[10px] bg-red-900/80 text-red-200 px-1.5 py-0.5 rounded">CHEAT</span>
+                </button>
+
+                <button id="cluckToggle" onclick="toggleCluckProtocol()" class="w-full bg-amber-950/50 hover:bg-amber-900/80 text-amber-300 border border-amber-700/50 text-xs font-mono font-bold py-2 px-3 rounded transition-all flex items-center justify-between">
+                    <span>CLUCK PROTOCOL</span>
+                    <span id="cluckStatusBadge" class="text-[10px] bg-amber-900/80 text-amber-200 px-1.5 py-0.5 rounded">OFF</span>
+                </button>
+            </div>
+
+            <!-- Freeplay Unlock Container -->
+            <div id="freeplayPanel" class="hidden flex-col gap-1.5 pt-1 border-t border-slate-800">
+                <span class="text-[11px] text-emerald-400 uppercase tracking-wider font-bold flex items-center gap-1">
+                    🏆 FREEPLAY UNLOCKED
+                </span>
+                <select id="freeplaySelect" onchange="selectFreeplayLevel(this.value)" class="w-full bg-slate-950 text-emerald-300 border border-emerald-500/50 text-xs font-mono p-2 rounded focus:outline-none focus:border-emerald-400">
+                    <!-- Populated via script -->
+                </select>
+            </div>
+
+            <!-- Squad Specs Info Box -->
+            <div class="bg-slate-950/80 border border-slate-800 p-2.5 rounded text-[11px] text-slate-400 flex flex-col gap-1">
+                <div class="text-cyan-400 font-bold text-[10px] tracking-wider uppercase">SQUAD SPECS</div>
+                <div>• Even Units: Sword & Shield (Melee Lunge)</div>
+                <div>• Odd Units: Morph Blaster (Delta Burst)</div>
+                <div>• Megazord Phase: SWAT Dual Cannons</div>
+            </div>
+        </aside>
+
+        <!-- CENTER VIEWPORT (CANVAS DISPLAY) -->
+        <section class="grow w-full flex flex-col items-center gap-2 bg-slate-900/80 border border-cyan-500/30 rounded-lg p-3 neon-border-cyan overflow-hidden">
+            <div class="w-full flex items-center justify-between text-xs text-slate-400 border-b border-slate-800/80 pb-2">
+                <span class="flex items-center gap-2 font-bold text-cyan-400">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    TACTICAL SATELLITE FEED // CANVAS 800x450
+                </span>
+                <span id="gamePhaseBadge" class="text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-600/50 px-2 py-0.5 rounded font-mono font-bold">
+                    INIT
+                </span>
+            </div>
+
+            <div class="canvas-container rounded-lg border-2 border-slate-700/80 overflow-hidden shadow-2xl flex justify-center items-center max-w-full">
+                <canvas id="gameCanvas" width="800" height="450" class="block max-w-full h-auto bg-[#0d141d]"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 3. BOTTOM PERSISTENT LOGS & ACTION PANEL -->
+    <footer class="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex flex-col lg:flex-row items-stretch gap-3 shrink-0">
+        <!-- Live Tactical Event Stream -->
+        <div class="w-full lg:w-2/3 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-1">
+                <span class="text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    REAL-TIME TACTICAL LOGS
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono">LIVE_FEED</span>
+            </div>
+            <div id="combatLog" class="h-24 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800/80 flex flex-col gap-1">
+                <!-- Logs rendered via JS -->
+            </div>
+        </div>
+
+        <!-- Telemetry & Action Metrics Panel -->
+        <div class="w-full lg:w-1/3 bg-slate-950 p-2.5 rounded border border-slate-800 flex flex-col justify-between gap-2">
+            <div class="text-xs text-slate-400 font-bold border-b border-slate-800 pb-1 flex justify-between items-center">
+                <span>TELEMETRY METRICS</span>
+                <span class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-1.5 py-0.2 rounded">SYNC</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
+                    <span class="text-[10px] text-slate-500">RANGERS ALIVE</span>
+                    <span id="statRangers" class="text-base font-bold text-cyan-400">0</span>
+                </div>
+                <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
+                    <span class="text-[10px] text-slate-500">ENEMIES ALIVE</span>
+                    <span id="statEnemies" class="text-base font-bold text-red-400">0</span>
+                </div>
+                <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
+                    <span class="text-[10px] text-slate-500">GAME PHASE</span>
+                    <span id="statPhase" class="text-[11px] font-bold text-amber-400 truncate">SQUAD_INIT</span>
+                </div>
+                <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
+                    <span class="text-[10px] text-slate-500">SYNTH ENGINE</span>
+                    <span id="statAudio" class="text-[11px] font-bold text-emerald-400">ONLINE</span>
+                </div>
+            </div>
+        </div>
+    </footer>
 
 <script>
 /**
- * CHRONO RANGERS - Clean Tactical Sentai Engine
+ * CHRONO RANGERS - Tactical Sentai Engine Core
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// --- REAL-TIME COMBAT LOG SYSTEM ---
+let logs = [];
+function addLog(msg, type = 'info') {
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    logs.unshift({ time, msg, type });
+    if (logs.length > 30) logs.pop();
+    renderLogs();
+}
+
+function renderLogs() {
+    const logEl = document.getElementById('combatLog');
+    if (!logEl) return;
+    logEl.innerHTML = logs.map(l => {
+        let colorClass = 'text-cyan-300';
+        if (l.type === 'error') colorClass = 'text-red-400 font-bold';
+        else if (l.type === 'warning') colorClass = 'text-amber-300';
+        else if (l.type === 'success') colorClass = 'text-emerald-400 font-bold';
+        return `<div class="py-0.5 border-b border-slate-900 flex items-start gap-2 text-xs font-mono"><span class="text-slate-600 shrink-0">[${l.time}]</span><span class="${colorClass}">${l.msg}</span></div>`;
+    }).join('');
+}
+
+// --- INTEGRATED SYNTH AUDIO ENGINE ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playTone(freq, duration, type = 'square', gainStart = 0.1) {
@@ -110,7 +241,7 @@ function playTone(freq, duration, type = 'square', gainStart = 0.1) {
         gainNode.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {}
+    } catch (e) { console.log("Audio node block triggered"); }
 }
 
 function playLaserSound() { playTone(880, 0.1, 'sawtooth', 0.08); }
@@ -122,12 +253,17 @@ function playLevelUpSound() {
     setTimeout(() => playTone(783.99, 0.2, 'sine', 0.2), 200);
 }
 
+// Global Engine Control
 let currentLevel = 1;
+let currentSlot = 1;
 let gamePhase = "SQUAD_INIT"; 
+let previousPhase = "";
 let cluckProtocolActive = false;
-let transitionFreeze = 45; 
+let transitionFreeze = 0; 
 let isGameCleared = false;
+let frameCounter = 0;
 
+// Entities Pools
 let rangers = [];
 let enemies = [];
 let projectiles = [];
@@ -135,6 +271,7 @@ let meleeEffects = [];
 let bossUnit = null;
 
 const RANGER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#e84393', '#fdcb6e', '#6c5ce7'];
+
 const MONSTER_ARCHETYPES = [
     { name: "Krybot Commander", color: "#7f8c8d" },
     { name: "Lava Construct", color: "#d35400" },
@@ -142,32 +279,128 @@ const MONSTER_ARCHETYPES = [
     { name: "Sinister Alien Fugitive", color: "#27ae60" }
 ];
 
+// Populate Freeplay Selector Options
 const selectEl = document.getElementById('freeplaySelect');
 for(let i = 1; i <= 36; i++) {
     let opt = document.createElement('option');
     opt.value = i;
-    opt.innerText = `Lvl ${i < 10 ? '0'+i : i}`;
+    opt.innerText = `Level ${i}`;
     selectEl.appendChild(opt);
 }
 
 function loadProgress() {
-    const savedLevel = localStorage.getItem(`chrono_save_classic`);
+    const savedLevel = localStorage.getItem(`chrono_save_slot_${currentSlot}`);
     currentLevel = savedLevel ? parseInt(savedLevel, 10) : 1;
-    isGameCleared = localStorage.getItem(`chrono_classic_cleared`) === "true";
     
-    document.getElementById('freeplayPanel').style.display = isGameCleared ? "flex" : "none";
-    if (isGameCleared) document.getElementById('freeplaySelect').value = currentLevel;
+    const clearedState = localStorage.getItem(`chrono_slot_cleared_${currentSlot}`);
+    isGameCleared = clearedState === "true";
+    
+    const freeplayPanel = document.getElementById('freeplayPanel');
+    if (freeplayPanel) {
+        freeplayPanel.classList.toggle('hidden', !isGameCleared);
+        freeplayPanel.classList.toggle('flex', isGameCleared);
+    }
+    if (isGameCleared) {
+        document.getElementById('freeplaySelect').value = currentLevel;
+    }
+    
+    updateSlotUI();
+    addLog(`PROFILE LOADED: Slot ${currentSlot} (Level ${currentLevel})`, 'info');
 }
 
 function saveProgress() {
-    localStorage.setItem(`chrono_save_classic`, currentLevel);
-    if (isGameCleared) localStorage.setItem(`chrono_classic_cleared`, "true");
+    localStorage.setItem(`chrono_save_slot_${currentSlot}`, currentLevel);
+    if (isGameCleared) {
+        localStorage.setItem(`chrono_slot_cleared_${currentSlot}`, "true");
+    }
+    updateSlotUI();
+}
+
+function selectSaveSlot(slotNum) {
+    currentSlot = slotNum;
+    loadProgress();
+    initLevel();
 }
 
 function selectFreeplayLevel(lvl) {
     currentLevel = parseInt(lvl, 10);
     saveProgress();
+    addLog(`FREEPLAY LEVEL SELECTED: Level ${currentLevel}`, 'warning');
     initLevel();
+}
+
+function updateSlotUI() {
+    for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById(`save${i}`);
+        const slotVal = localStorage.getItem(`chrono_save_slot_${i}`) || 1;
+        const slotClear = localStorage.getItem(`chrono_slot_cleared_${i}`) === "true";
+        if (btn) {
+            btn.innerHTML = `
+                <span>Slot ${i}</span>
+                <span class="text-[10px] ${i === currentSlot ? 'text-cyan-400 bg-cyan-950/80 border border-cyan-500/50' : 'text-slate-400 bg-slate-900'} px-1.5 py-0.5 rounded">
+                    Lvl ${slotVal}${slotClear ? ' 🏆' : ''}
+                </span>
+            `;
+            if (i === currentSlot) {
+                btn.className = "w-full bg-slate-900 border border-cyan-500/60 text-cyan-300 text-xs font-mono font-medium py-2 px-3 rounded transition-all text-left flex items-center justify-between";
+            } else {
+                btn.className = "w-full bg-slate-950 hover:bg-slate-800 text-slate-300 text-xs font-mono font-medium py-2 px-3 rounded border border-slate-800 transition-all text-left flex items-center justify-between";
+            }
+        }
+    }
+}
+
+function updateTeamStatusUI() {
+    const grid = document.getElementById('teamStatusGrid');
+    if (!grid) return;
+    
+    if (!rangers || rangers.length === 0) {
+        grid.innerHTML = `<span class="text-xs text-red-400 font-mono font-bold">SQUAD WIPED OUT</span>`;
+        return;
+    }
+
+    grid.innerHTML = rangers.map((r) => {
+        const hpPercent = Math.max(0, Math.round((r.hp / r.maxHp) * 100));
+        const borderGlow = hpPercent < 35 ? 'border-red-500 animate-pulse' : 'border-slate-800';
+        return `
+            <div class="bg-slate-950/90 border ${borderGlow} p-1.5 rounded flex flex-col gap-1 min-w-[70px] shrink-0">
+                <div class="flex items-center justify-between gap-1 text-[10px] font-mono font-bold">
+                    <span style="color: ${r.color}">R-${r.id + 1}</span>
+                    <span class="${hpPercent < 35 ? 'text-red-400' : 'text-slate-300'}">${hpPercent}%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                    <div class="h-full transition-all duration-200" style="width: ${hpPercent}%; background-color: ${r.color}"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const squadBadge = document.getElementById('squadCountBadge');
+    if (squadBadge) squadBadge.innerText = `${rangers.length} UNITS ENGAGED`;
+}
+
+function updateLiveStatsUI() {
+    const elRangers = document.getElementById('statRangers');
+    const elEnemies = document.getElementById('statEnemies');
+    const elPhase = document.getElementById('statPhase');
+    const elAudio = document.getElementById('statAudio');
+
+    if (elRangers) elRangers.innerText = rangers ? rangers.length : 0;
+    if (elEnemies) elEnemies.innerText = gamePhase === 'MEGAZORD_DUEL' ? (bossUnit ? 1 : 0) : (enemies ? enemies.length : 0);
+    if (elPhase) elPhase.innerText = gamePhase;
+    if (elAudio) elAudio.innerText = audioCtx && audioCtx.state === 'running' ? 'ONLINE' : 'READY';
+
+    const phaseBadge = document.getElementById('gamePhaseBadge');
+    if (phaseBadge) {
+        phaseBadge.innerText = gamePhase;
+        if (gamePhase === "SQUAD_BRAWL") {
+            phaseBadge.className = "text-[10px] bg-cyan-950/90 text-cyan-300 border border-cyan-500/60 px-2 py-0.5 rounded font-mono font-bold";
+        } else if (gamePhase === "MEGAZORD_DUEL") {
+            phaseBadge.className = "text-[10px] bg-red-950/90 text-red-300 border border-red-500/60 px-2 py-0.5 rounded font-mono font-bold animate-pulse";
+        } else {
+            phaseBadge.className = "text-[10px] bg-amber-950/90 text-amber-300 border border-amber-500/60 px-2 py-0.5 rounded font-mono font-bold";
+        }
+    }
 }
 
 function initLevel() {
@@ -180,39 +413,42 @@ function initLevel() {
     meleeEffects = [];
     bossUnit = null;
     
-    document.getElementById('levelDisplay').innerText = `CAMPAIGN LEVEL: ${currentLevel < 10 ? '0'+currentLevel : currentLevel}/36`;
-    if (isGameCleared) document.getElementById('freeplaySelect').value = currentLevel;
+    document.getElementById('levelDisplay').innerText = `Campaign Level: ${currentLevel} / 36`;
+    if (isGameCleared) {
+        document.getElementById('freeplaySelect').value = currentLevel;
+    }
 
     let activeSquadSize = currentLevel >= 25 ? 10 : (currentLevel >= 12 ? 8 : 5);
     for (let i = 0; i < activeSquadSize; i++) {
-        let startX = 60 + (i * 20);
-        let startY = 120 + (i * 28);
+        let originX = 60 + (i * 20);
+        let originY = 120 + (i * 28);
         rangers.push({
             id: i,
-            x: startX,
-            y: startY,
-            originX: startX,
-            originY: startY,
+            x: originX,
+            y: originY,
+            originX: originX,
+            originY: originY,
             color: RANGER_COLORS[i],
-            hp: 240,       
+            hp: 240,
             maxHp: 240,
             size: 10,
             weaponMode: i % 2 === 0 ? "SWORD_SHIELD" : "MORPH_BLASTER",
             shieldUp: false,
-            specialCooldown: 100 + Math.random() * 150,
-            lungeState: "READY", 
+            specialCooldown: 100 + Math.random() * 200,
+            specialActiveTimer: 0,
+            lungeState: "READY",
             lungeTimer: 0,
             targetEnemy: null
         });
     }
 
-    let enemyCount = 5 + Math.floor(currentLevel * 0.7);
+    let enemyCount = 6 + currentLevel;
     for (let i = 0; i < enemyCount; i++) {
         enemies.push({
-            id: Math.random(),
-            x: 500 + Math.random() * 260,
-            y: 50 + Math.random() * 350,
-            hp: 45 + (currentLevel * 3),
+            id: i,
+            x: 450 + Math.random() * 300,
+            y: 40 + Math.random() * 360,
+            hp: 45,
             isChicken: cluckProtocolActive,
             shootTimer: 60 + Math.random() * 120,
             eggTimer: Math.random() * 100
@@ -220,31 +456,79 @@ function initLevel() {
     }
 
     if (currentLevel === 35) {
-        bossUnit = { name: "A-SQUAD ROGUE MEGAZORD", color: "#2c3e50", borderColor: "#e74c3c", size: 50, hp: 2500, maxHp: 2500, isASquad: true, isFinal: false, x: 600, y: 120 };
-        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: A-SQUAD DETECTED`;
+        bossUnit = {
+            name: "A-SQUAD ROGUE MEGAZORD",
+            color: "#2c3e50",
+            borderColor: "#e74c3c", 
+            size: 50,
+            hp: 2500,
+            maxHp: 2500,
+            isASquad: true,
+            isFinal: false,
+            x: 600,
+            y: 120
+        };
+        document.getElementById('monsterIntel').innerText = `JUDGEMENT TIME: ${bossUnit.name} (Rogue Elite Core)`;
     } else if (currentLevel === 36) {
-        bossUnit = { name: "OMNI-CROWN PREMIER", color: "#000000", borderColor: "#9b59b6", size: 65, hp: 4000, maxHp: 4000, isASquad: false, isFinal: true, x: 600, y: 120 };
-        document.getElementById('monsterIntel').innerText = `FINAL SHOWDOWN: OMNI-CROWN`;
+        bossUnit = {
+            name: "OMNI-CROWN PREMIER",
+            color: "#000000",
+            borderColor: "#9b59b6",
+            size: 65,
+            hp: 4000,
+            maxHp: 4000,
+            isASquad: false,
+            isFinal: true,
+            x: 600,
+            y: 120
+        };
+        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: ${bossUnit.name} (Ancient Cybernetic Form)`;
     } else {
         let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
-        bossUnit = { name: `${arch.name} v.${currentLevel}`, color: arch.color, borderColor: "#c0392b", size: 32 + (currentLevel * 0.5), hp: 250 + (currentLevel * 60), maxHp: 250 + (currentLevel * 60), isASquad: false, isFinal: false, x: 600, y: 120 };
-        document.getElementById('monsterIntel').innerText = `TARGET: ${bossUnit.name.toUpperCase()}`;
+        bossUnit = {
+            name: `${arch.name} v.${currentLevel}`,
+            color: arch.color,
+            borderColor: "#c0392b",
+            size: 32 + (currentLevel * 0.5),
+            hp: 250 + (currentLevel * 60),
+            maxHp: 250 + (currentLevel * 60),
+            isASquad: false,
+            isFinal: false,
+            x: 600,
+            y: 120
+        };
+        document.getElementById('monsterIntel').innerText = `Target: ${bossUnit.name}`;
     }
+
+    addLog(`DEPLOYED: Campaign Level ${currentLevel} initialized (${activeSquadSize} Rangers vs ${enemyCount} Hostiles)`, 'info');
+    updateTeamStatusUI();
+    updateLiveStatsUI();
 }
 
 function toggleCluckProtocol() {
     cluckProtocolActive = !cluckProtocolActive;
     const btn = document.getElementById('cluckToggle');
-    btn.innerText = cluckProtocolActive ? "CLUCK PROTOCOL: ON 🐔" : "CLUCK PROTOCOL: OFF";
-    btn.className = cluckProtocolActive ? "cluck-btn active" : "cluck-btn";
+    const badge = document.getElementById('cluckStatusBadge');
+    if (btn && badge) {
+        badge.innerText = cluckProtocolActive ? "ON 🐔" : "OFF";
+        btn.className = cluckProtocolActive 
+            ? "w-full bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/60 text-xs font-mono font-bold py-2 px-3 rounded transition-all flex items-center justify-between"
+            : "w-full bg-amber-950/50 hover:bg-amber-900/80 text-amber-300 border border-amber-700/50 text-xs font-mono font-bold py-2 px-3 rounded transition-all flex items-center justify-between";
+    }
+    addLog(`CLUCK PROTOCOL OVERRIDE: ${cluckProtocolActive ? 'ENABLED 🐔' : 'DISABLED'}`, 'warning');
     initLevel();
 }
 
 function nextLevel() {
     playLevelUpSound();
+    addLog(`LEVEL VICTORIOUS! Advancing squad status...`, 'success');
     if (currentLevel === 36) {
         isGameCleared = true;
-        document.getElementById('freeplayPanel').style.display = "flex";
+        const freeplayPanel = document.getElementById('freeplayPanel');
+        if (freeplayPanel) {
+            freeplayPanel.classList.remove('hidden');
+            freeplayPanel.classList.add('flex');
+        }
         saveProgress();
         initLevel();
     } else {
@@ -255,18 +539,22 @@ function nextLevel() {
 }
 
 function update() {
+    frameCounter++;
+
     if (transitionFreeze > 0) {
         transitionFreeze--;
         if (transitionFreeze === 0 && gamePhase === "SQUAD_INIT") {
             gamePhase = "SQUAD_BRAWL"; 
+            addLog(`COMBAT ENGAGED: Squad brawl initialized`, 'info');
         }
         return;
     }
 
-    // Update cosmetic visual slashes
-    for (let i = meleeEffects.length - 1; i >= 0; i--) {
-        meleeEffects[i].life--;
-        if (meleeEffects[i].life <= 0) meleeEffects.splice(i, 1);
+    if (gamePhase !== previousPhase) {
+        if (gamePhase === "MEGAZORD_DUEL") {
+            addLog(`WARNING: Hostiles cleared. MEGAZORD SWAT STRIKER ENGAGED!`, 'warning');
+        }
+        previousPhase = gamePhase;
     }
 
     if (gamePhase === "SQUAD_BRAWL") {
@@ -276,14 +564,20 @@ function update() {
             return;
         }
 
+        // Melee slash visual decay loop
+        for (let i = meleeEffects.length - 1; i >= 0; i--) {
+            meleeEffects[i].life--;
+            if (meleeEffects[i].life <= 0) meleeEffects.splice(i, 1);
+        }
+
         enemies.forEach(e => {
             if (rangers.length > 0) {
                 let target = rangers[Math.floor(Math.random() * rangers.length)];
-                let dx = target.originX - e.x;
-                let dy = target.originY - e.y;
+                let dx = target.x - e.x;
+                let dy = target.y - e.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 
-                if (dist > 180) {
+                if (dist > 150) {
                     e.x += (dx / dist) * 0.9;
                     e.y += (dy / dist) * 0.9;
                 }
@@ -306,24 +600,22 @@ function update() {
 
         rangers.forEach(r => {
             if (r.weaponMode === "SWORD_SHIELD") {
-                if (r.lungeState === "READY") {
-                    if (enemies.length > 0) {
-                        let closest = enemies[0];
-                        let minDist = Infinity;
-                        enemies.forEach(e => {
-                            let d = Math.sqrt((e.x - r.x)**2 + (e.y - r.y)**2);
-                            if (d < minDist) { minDist = d; closest = e; }
-                        });
+                if (r.specialCooldown > 0) r.specialCooldown--;
 
-                        if (minDist < 250) {
-                            r.lungeState = "FORWARD";
-                            r.lungeTimer = 0;
-                            r.targetEnemy = closest.id;
-                        }
+                if (r.lungeState === "READY") {
+                    if (r.specialCooldown <= 0 && enemies.length > 0) {
+                        let target = enemies[Math.floor(Math.random() * enemies.length)];
+                        r.targetEnemy = target.id;
+                        r.lungeState = "LUNGING";
+                        r.lungeTimer = 0;
+                        r.specialCooldown = 220 + Math.random() * 120;
+                    } else {
+                        r.x += (r.originX - r.x) * 0.1;
+                        r.y += (r.originY - r.y) * 0.1;
                     }
                 }
 
-                if (r.lungeState === "FORWARD") {
+                if (r.lungeState === "LUNGING") {
                     let target = enemies.find(e => e.id === r.targetEnemy) || enemies[0];
                     if (target) {
                         let tx = target.x - 20;
@@ -338,13 +630,15 @@ function update() {
                             r.lungeTimer = 0;
                             target.hp -= 40; 
                             
-                            // Inject actual visible sword strike configuration into array
                             meleeEffects.push({ x: target.x, y: target.y, life: 10 });
                             playTone(280, 0.15, 'sawtooth', 0.15);
 
                             if (target.hp <= 0) {
                                 let idx = enemies.indexOf(target);
-                                if (idx > -1) enemies.splice(idx, 1);
+                                if (idx > -1) {
+                                    enemies.splice(idx, 1);
+                                    addLog(`GOON ELIMINATED: Melee strike confirmed`, 'success');
+                                }
                                 playExplosionSound();
                             }
                         }
@@ -417,6 +711,7 @@ function update() {
                         projectiles.splice(i, 1);
                         if (e.hp <= 0) {
                             enemies.splice(j, 1);
+                            addLog(`HOSTILE DESTROYED: Laser hit confirmed`, 'success');
                             playExplosionSound();
                         }
                         break;
@@ -429,6 +724,7 @@ function update() {
                         e.hp -= 35;
                         if (e.hp <= 0) {
                             enemies.splice(j, 1);
+                            addLog(`HOSTILE WIPE: Delta Burst blast impact`, 'success');
                             playExplosionSound();
                         }
                     }
@@ -444,6 +740,7 @@ function update() {
                         projectiles.splice(i, 1);
                         if (r.hp <= 0) {
                             rangers.splice(k, 1);
+                            addLog(`WARNING: Ranger R-${r.id + 1} fallen in combat!`, 'error');
                             playTone(180, 0.2, 'sawtooth', 0.1);
                         }
                         break;
@@ -452,7 +749,10 @@ function update() {
             }
         }
 
-        if (rangers.length === 0) initLevel(); 
+        if (rangers.length === 0) {
+            addLog(`CRITICAL: All squad units eliminated. Restarting level...`, 'error');
+            initLevel(); 
+        }
     } else if (gamePhase === "MEGAZORD_DUEL") {
         if (!bossUnit) return; 
 
@@ -482,7 +782,10 @@ function update() {
                 if (p.x >= bossUnit.x && p.x <= bossUnit.x + hitWidth && p.y >= bossUnit.y && p.y <= bossUnit.y + hitHeight) {
                     bossUnit.hp -= 25;
                     projectiles.splice(i, 1);
-                    if (bossUnit.hp <= 0) playExplosionSound();
+                    if (bossUnit.hp <= 0) {
+                        addLog(`TARGET DESTROYED: Megazord victorious against ${bossUnit.name}`, 'success');
+                        playExplosionSound();
+                    }
                 }
             }
             
@@ -495,13 +798,18 @@ function update() {
 
         if (bossUnit.hp <= 0) nextLevel();
     }
+
+    if (frameCounter % 3 === 0) {
+        updateTeamStatusUI();
+        updateLiveStatsUI();
+    }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gamePhase === "SQUAD_INIT" || transitionFreeze > 0) {
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#06b6d4';
         ctx.font = 'bold 16px monospace';
         ctx.fillText("SYNCHRONIZING REVOLUTION MATRIX...", 240, 220);
         return;
@@ -583,6 +891,7 @@ function draw() {
         if (!bossUnit) return;
 
         ctx.save();
+        // --- ALLIES: S.P.D. SWAT MEGAZORD HOVER CHASSIS ---
         ctx.fillStyle = '#1f2937';
         ctx.fillRect(60, 160, 45, 70);  
         ctx.fillRect(175, 160, 45, 70); 
@@ -664,6 +973,7 @@ function runLoop() {
     requestAnimationFrame(runLoop);
 }
 
+// Spark up system operations cleanly
 loadProgress();
 initLevel();
 runLoop();
