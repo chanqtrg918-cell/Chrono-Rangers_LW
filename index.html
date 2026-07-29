@@ -58,7 +58,6 @@
                 <span>SQUAD HEALTH MONITOR // S.P.D. TELEMETRY</span>
                 <span id="squadCountBadge" class="text-cyan-400 font-bold">ACTIVE</span>
             </div>
-            <!-- Harmonized telemetryGrid ID -->
             <div id="telemetryGrid" class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full"></div>
         </div>
     </header>
@@ -134,7 +133,6 @@
                 </span>
                 <span class="text-[10px] text-slate-500 font-mono">LIVE_FEED</span>
             </div>
-            <!-- Harmonized tacticalLog ID -->
             <div id="tacticalLog" class="h-24 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800/80 flex flex-col gap-1"></div>
         </div>
 
@@ -146,12 +144,10 @@
             <div class="grid grid-cols-2 gap-2 text-xs">
                 <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
                     <span class="text-[10px] text-slate-500">RANGERS ALIVE</span>
-                    <!-- Harmonized metricRangers ID -->
                     <span id="metricRangers" class="text-base font-bold text-cyan-400">0</span>
                 </div>
                 <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
                     <span class="text-[10px] text-slate-500">ENEMIES ALIVE</span>
-                    <!-- Harmonized metricEnemies ID -->
                     <span id="metricEnemies" class="text-base font-bold text-red-400">0</span>
                 </div>
                 <div class="bg-slate-900/60 p-1.5 rounded border border-slate-800 flex flex-col">
@@ -173,6 +169,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let audioCtx = null;
+let tickCount = 0;
 
 function initAudio() {
     if (!audioCtx) {
@@ -224,10 +221,10 @@ let bossUnit = null;
 
 const RANGER_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#f97316', '#06b6d4', '#ec4899', '#f59e0b', '#6366f1'];
 const MONSTER_ARCHETYPES = [
-    { name: "Krybot Vanguard", color: "#64748b" },
-    { name: "Lava Construct", color: "#ea580c" },
-    { name: "Glacial Stalker", color: "#0284c7" },
-    { name: "Alien Infiltrator", color: "#16a34a" }
+    { name: "Krybot Vanguard", color: "#64748b", coreColor: "#475569" },
+    { name: "Lava Construct", color: "#ea580c", coreColor: "#9a3412" },
+    { name: "Glacial Stalker", color: "#0284c7", coreColor: "#0369a1" },
+    { name: "Alien Infiltrator", color: "#16a34a", coreColor: "#14532d" }
 ];
 
 const selectEl = document.getElementById('freeplaySelect');
@@ -367,6 +364,7 @@ function initLevel() {
         });
     }
 
+    let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
     let enemyCount = 5 + Math.floor(currentLevel * 0.75);
     for (let i = 0; i < enemyCount; i++) {
         enemies.push({
@@ -376,7 +374,10 @@ function initLevel() {
             hp: 50 + (currentLevel * 4),
             isChicken: cluckProtocolActive,
             shootTimer: 50 + Math.random() * 100,
-            eggTimer: Math.random() * 90
+            eggTimer: Math.random() * 90,
+            color: arch.color,
+            coreColor: arch.coreColor,
+            bobOffset: Math.random() * Math.PI * 2
         });
     }
 
@@ -388,7 +389,6 @@ function initLevel() {
         bossUnit = { name: "OMNI-CROWN PREMIER CORE", color: "#020617", borderColor: "#a855f7", size: 60, hp: 4500, maxHp: 4500, isASquad: false, isFinal: true, x: 580, y: 100 };
         if (intel) intel.innerText = `Target: Omni-Crown Premier`;
     } else {
-        let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
         bossUnit = { name: `${arch.name} v.${currentLevel}`, color: arch.color, borderColor: "#dc2626", size: 30 + (currentLevel * 0.4), hp: 250 + (currentLevel * 65), maxHp: 250 + (currentLevel * 65), isASquad: false, isFinal: false, x: 600, y: 120 };
         if (intel) intel.innerText = `Target: ${bossUnit.name}`;
     }
@@ -423,6 +423,7 @@ function nextLevel() {
 }
 
 function update() {
+    tickCount++;
     if (transitionFreeze > 0) {
         transitionFreeze--;
         if (transitionFreeze === 0 && gamePhase === "SQUAD_INIT") {
@@ -465,7 +466,7 @@ function update() {
                 } else {
                     e.shootTimer--;
                     if (e.shootTimer <= 0) {
-                        projectiles.push({ x: e.x, y: e.y, type: 'GOON_BLAST', vx: -3.8, vy: (target.y - e.y) / (dist || 1) * 2 });
+                        projectiles.push({ x: e.x - 8, y: e.y, type: 'GOON_BLAST', vx: -3.8, vy: (target.y - e.y) / (dist || 1) * 2 });
                         e.shootTimer = 130 + Math.random() * 90;
                     }
                 }
@@ -481,13 +482,11 @@ function update() {
                     if (d < minDist) { minDist = d; closest = e; }
                 });
 
-                // Differentiated class mechanics via ID check
                 if (r.id % 2 !== 0) { 
-                    // Odd Units: Morph Blaster suppression fire (Enhanced range)
                     if (minDist < 280 && r.lungeState === "READY") {
                         r.blasterCooldown--;
                         if (r.blasterCooldown <= 0) {
-                            r.blasterCooldown = 35 + Math.random() * 25; // Faster bursts
+                            r.blasterCooldown = 35 + Math.random() * 25; 
                             let bdx = closest.x - r.x;
                             let bdy = closest.y - r.y;
                             let bDist = Math.sqrt(bdx*bdx + bdy*bdy) || 1;
@@ -504,7 +503,6 @@ function update() {
                         }
                     }
                 } else {
-                    // Even Units: Sword & Shield behavior (Closer trigger limit)
                     if (minDist < 200 && r.lungeState === "READY") {
                         r.blasterCooldown--;
                         if (r.blasterCooldown <= 0) {
@@ -548,7 +546,6 @@ function update() {
                             r.lungeState = "IMPACT";
                             r.lungeTimer = 0;
                             
-                            // Even numbers do heavier melee damage
                             let damage = r.id % 2 === 0 ? 65 : 30;
                             target.hp -= damage; 
                             
@@ -623,7 +620,6 @@ function update() {
                     let r = rangers[k];
                     if (Math.abs(p.x - r.x) < 12 && Math.abs(p.y - r.y) < 12) {
                         let baseDmg = p.type === 'EGG' ? 10 : 16;
-                        // Shield mitigation factor (Even shields reflect better)
                         if (r.shieldUp) baseDmg *= (r.id % 2 === 0 ? 0.10 : 0.25); 
                         r.hp -= baseDmg;
                         projectiles.splice(i, 1);
@@ -720,7 +716,6 @@ function draw() {
             ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
             ctx.fill();
 
-            // Render Blade for Even units, Blaster for odd units
             if (r.id % 2 === 0) {
                 ctx.strokeStyle = '#eab308'; 
                 ctx.lineWidth = 2;
@@ -755,10 +750,29 @@ function draw() {
                 ctx.fillStyle = '#f97316'; 
                 ctx.fillRect(e.x - 10, e.y - 2, 3, 3);
             } else {
-                ctx.fillStyle = '#334155';
-                ctx.fillRect(e.x - 7, e.y - 7, 14, 14);
-                ctx.fillStyle = '#ef4444'; 
-                ctx.fillRect(e.x - 5, e.y - 3, 9, 2);
+                // Polished regular Krybot armor sprite
+                let bobY = Math.sin(tickCount * 0.15 + e.bobOffset) * 2;
+                let drawY = e.y + bobY;
+
+                // Armored shoulders/arms
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x - 9, drawY - 4, 18, 8);
+                
+                // Primary Torso Chasis
+                ctx.fillStyle = e.coreColor;
+                ctx.fillRect(e.x - 6, drawY - 7, 12, 14);
+                
+                // Cybernetic Head Core
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x - 4, drawY - 13, 8, 7);
+                
+                // Glowing Threat Visor
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(e.x - 3, drawY - 11, 6, 2);
+                
+                // Mechanical Core Badge
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(e.x - 2, drawY - 2, 4, 4);
             }
             ctx.restore();
         });
@@ -790,7 +804,7 @@ function draw() {
         ctx.fillStyle = '#06b6d4'; 
         ctx.fillRect(123, 110, 24, 5);
 
-        // Render SWAT Twin Blaster Cannons
+        // SWAT Twin Blaster Cannons
         ctx.fillStyle = '#334155';
         ctx.fillRect(155, 180, 35, 12);  
         ctx.fillRect(155, 220, 35, 12);  
