@@ -210,7 +210,6 @@ function updateSlotUI() {
 }
 
 function initLevel() {
-    // LOCK REVOLUTION MATRIX STATE
     gamePhase = "SQUAD_INIT";
     transitionFreeze = 45; 
     
@@ -231,8 +230,8 @@ function initLevel() {
             x: 60 + (i * 20),
             y: 120 + (i * 28),
             color: RANGER_COLORS[i],
-            hp: 120,
-            maxHp: 120,
+            hp: 240,       // TUNED UP: Upgraded from 120 for better squad defense
+            maxHp: 240,
             size: 10,
             weaponMode: i % 2 === 0 ? "SWORD_SHIELD" : "MORPH_BLASTER",
             shieldUp: false,
@@ -322,7 +321,6 @@ function nextLevel() {
 }
 
 function update() {
-    // Secure transition lock state evaluation
     if (transitionFreeze > 0) {
         transitionFreeze--;
         if (transitionFreeze === 0 && gamePhase === "SQUAD_INIT") {
@@ -376,25 +374,32 @@ function update() {
                 if (r.specialCooldown > 0) r.specialCooldown--;
 
                 if (r.weaponMode === "SWORD_SHIELD") {
-                    if (r.specialCooldown <= 0 && dist < 120 && dist > 30) {
+                    // FIXED SWORD MELEE RUNTIME TRACKING
+                    if (r.specialCooldown <= 0 && dist < 150 && dist > 35) {
                         r.specialCooldown = 300 + Math.random() * 150;
                         r.specialActiveTimer = 15; 
-                        r.x += (dx / dist) * 60; 
-                        r.y += (dy / dist) * 60;
-                        playTone(220, 0.25, 'sawtooth', 0.15); // Special slash audio
-                        enemies.slice(0, 3).forEach(en => en.hp -= 25); 
+                        
+                        // Lunge directly into dynamic range safely instead of overshooting
+                        r.x += (dx / dist) * (dist - 20); 
+                        r.y += (dy / dist) * (dist - 20);
+                        playTone(220, 0.25, 'sawtooth', 0.15); 
+                        
+                        // Sweeping hit across the enemy vanguard
+                        enemies.slice(0, 3).forEach(en => en.hp -= 30); 
                     }
 
                     if (r.specialActiveTimer > 0) {
                         r.specialActiveTimer--;
                     }
 
-                    if (dist > 25) {
-                        r.x += (dx / dist) * 2.0;
-                        r.y += (dy / dist) * 2.0;
+                    // Standard tracking logic
+                    if (dist > 22) {
+                        r.x += (dx / dist) * 2.5;
+                        r.y += (dy / dist) * 2.5;
                         r.shieldUp = false;
                     } else {
-                        target.hp -= 0.6;
+                        // Embedded in combat zone: switch to high defense state
+                        target.hp -= 0.8;
                         r.shieldUp = true;
                     }
                 } else if (r.weaponMode === "MORPH_BLASTER") {
