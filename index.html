@@ -9,7 +9,7 @@
             margin: 0;
             background-color: #111;
             color: #fff;
-            font-family: system-ui, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,90 +17,84 @@
             min-height: 100vh;
             user-select: none;
         }
+        #hud {
+            width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            background: #222;
+            padding: 8px 16px;
+            box-sizing: border-box;
+            border: 2px solid #555;
+            border-bottom: none;
+        }
         #gameCanvas {
             background-color: #161e16;
             border: 4px solid #f1c40f;
             box-shadow: 0 8px 32px rgba(0,0,0,0.7);
         }
         .ui-panel {
-            margin-top: 10px;
+            width: 800px;
+            margin-top: 8px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
+            justify-content: space-between;
+            background: #222;
+            padding: 8px 16px;
+            box-sizing: border-box;
+            border: 2px solid #555;
+            border-top: none;
         }
         button {
             background-color: #c0392b;
             color: white;
-            border: none;
-            padding: 8px 16px;
+            border: 1px solid #7f8c8d;
+            padding: 6px 12px;
+            font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
             cursor: pointer;
-            border-radius: 4px;
         }
         button:hover { background-color: #e74c3c; }
         .cluck-btn { background-color: #d35400; }
         .cluck-btn.active { background-color: #27ae60; }
-        .save-btn { background-color: #2c3e50; font-size: 0.85rem; }
-        .save-btn.active { border: 2px solid #f1c40f; background-color: #34495e; }
-        .freeplay-container {
-            margin-top: 8px;
-            background: #27ae60;
-            padding: 6px 12px;
-            border-radius: 4px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-        }
         select {
             background: #111;
             color: #fff;
             border: 1px solid #fff;
             padding: 4px 8px;
-            font-weight: bold;
-            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
         }
     </style>
 </head>
 <body>
 
-    <div style="text-align: center; margin-bottom: 5px;">
-        <h2 style="margin:0; letter-spacing: 2px; color: #f1c40f;">CHRONO RANGERS: TOTAL DEFENSE</h2>
-        <div id="levelDisplay" style="font-size: 0.9rem; color: #aaa;">Campaign Level: 1 / 36</div>
-        <div id="monsterIntel" style="font-size: 0.85rem; color: #e74c3c; font-weight: bold; margin-top: 2px;">Threat: Loading...</div>
+    <div id="hud">
+        <div id="levelDisplay" style="font-weight: bold; color: #f1c40f;">CAMPAIGN LEVEL: 01/36</div>
+        <div id="monsterIntel" style="color: #e74c3c; font-weight: bold;">THREAT: INITIALIZING...</div>
     </div>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
 
     <div class="ui-panel">
-        <button onclick="nextLevel()">Cheat: Skip Level</button>
-        <button id="cluckToggle" class="cluck-btn" onclick="toggleCluckProtocol()">Cluck Protocol: OFF</button>
-    </div>
-
-    <div id="freeplayPanel" class="freeplay-container">
-        <span style="font-weight: bold; font-size: 0.85rem;">🏆 FREEPLAY UNLOCKED:</span>
-        <select id="freeplaySelect" onchange="selectFreeplayLevel(this.value)">
-            <!-- Populated via script -->
-        </select>
-    </div>
-
-    <div class="ui-panel" style="margin-top: 5px; background: #222; padding: 8px; border-radius: 6px;">
-        <span style="font-size: 0.85rem; color: #aaa;">Save Profile:</span>
-        <button id="save1" class="save-btn" onclick="selectSaveSlot(1)">Slot 1</button>
-        <button id="save2" class="save-btn" onclick="selectSaveSlot(2)">Slot 2</button>
-        <button id="save3" class="save-btn" onclick="selectSaveSlot(3)">Slot 3</button>
+        <div>
+            <button onclick="nextLevel()">SKIP LEVEL</button>
+            <button id="cluckToggle" class="cluck-btn" onclick="toggleCluckProtocol()">CLUCK PROTOCOL: OFF</button>
+        </div>
+        <div id="freeplayPanel" style="display: none; align-items: center; gap: 8px;">
+            <span style="font-weight: bold; font-size: 0.85rem; color: #27ae60;">FREEPLAY:</span>
+            <select id="freeplaySelect" onchange="selectFreeplayLevel(this.value)"></select>
+        </div>
     </div>
 
 <script>
 /**
- * CHRONO RANGERS - Tactical Sentai Engine Core
+ * CHRONO RANGERS - Clean Tactical Sentai Engine
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-// --- INTEGRATED SYNTH AUDIO ENGINE ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playTone(freq, duration, type = 'square', gainStart = 0.1) {
@@ -116,7 +110,7 @@ function playTone(freq, duration, type = 'square', gainStart = 0.1) {
         gainNode.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-    } catch (e) { console.log("Audio node block triggered"); }
+    } catch (e) {}
 }
 
 function playLaserSound() { playTone(880, 0.1, 'sawtooth', 0.08); }
@@ -128,22 +122,19 @@ function playLevelUpSound() {
     setTimeout(() => playTone(783.99, 0.2, 'sine', 0.2), 200);
 }
 
-// Global Engine Control
 let currentLevel = 1;
-let currentSlot = 1;
 let gamePhase = "SQUAD_INIT"; 
 let cluckProtocolActive = false;
-let transitionFreeze = 0; 
+let transitionFreeze = 45; 
 let isGameCleared = false;
 
-// Entities Pools
 let rangers = [];
 let enemies = [];
 let projectiles = [];
+let meleeEffects = [];
 let bossUnit = null;
 
 const RANGER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c', '#e84393', '#fdcb6e', '#6c5ce7'];
-
 const MONSTER_ARCHETYPES = [
     { name: "Krybot Commander", color: "#7f8c8d" },
     { name: "Lava Construct", color: "#d35400" },
@@ -151,62 +142,32 @@ const MONSTER_ARCHETYPES = [
     { name: "Sinister Alien Fugitive", color: "#27ae60" }
 ];
 
-// Populate Freeplay Selector Options
 const selectEl = document.getElementById('freeplaySelect');
 for(let i = 1; i <= 36; i++) {
     let opt = document.createElement('option');
     opt.value = i;
-    opt.innerText = `Level ${i}`;
+    opt.innerText = `Lvl ${i < 10 ? '0'+i : i}`;
     selectEl.appendChild(opt);
 }
 
 function loadProgress() {
-    const savedLevel = localStorage.getItem(`chrono_save_slot_${currentSlot}`);
+    const savedLevel = localStorage.getItem(`chrono_save_classic`);
     currentLevel = savedLevel ? parseInt(savedLevel, 10) : 1;
-    
-    const clearedState = localStorage.getItem(`chrono_slot_cleared_${currentSlot}`);
-    isGameCleared = clearedState === "true";
+    isGameCleared = localStorage.getItem(`chrono_classic_cleared`) === "true";
     
     document.getElementById('freeplayPanel').style.display = isGameCleared ? "flex" : "none";
-    if (isGameCleared) {
-        document.getElementById('freeplaySelect').value = currentLevel;
-    }
-    
-    updateSlotUI();
+    if (isGameCleared) document.getElementById('freeplaySelect').value = currentLevel;
 }
 
 function saveProgress() {
-    localStorage.setItem(`chrono_save_slot_${currentSlot}`, currentLevel);
-    if (isGameCleared) {
-        localStorage.setItem(`chrono_slot_cleared_${currentSlot}`, "true");
-    }
-    updateSlotUI();
-}
-
-function selectSaveSlot(slotNum) {
-    currentSlot = slotNum;
-    loadProgress();
-    initLevel();
+    localStorage.setItem(`chrono_save_classic`, currentLevel);
+    if (isGameCleared) localStorage.setItem(`chrono_classic_cleared`, "true");
 }
 
 function selectFreeplayLevel(lvl) {
     currentLevel = parseInt(lvl, 10);
     saveProgress();
     initLevel();
-}
-
-function updateSlotUI() {
-    for (let i = 1; i <= 3; i++) {
-        const btn = document.getElementById(`save${i}`);
-        const slotVal = localStorage.getItem(`chrono_save_slot_${i}`) || 1;
-        const slotClear = localStorage.getItem(`chrono_slot_cleared_${i}`) === "true";
-        btn.innerText = `Slot ${i} (Lvl ${slotVal})${slotClear ? ' 🏆' : ''}`;
-        if (i === currentSlot) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    }
 }
 
 function initLevel() {
@@ -216,36 +177,42 @@ function initLevel() {
     rangers = [];
     enemies = [];
     projectiles = [];
+    meleeEffects = [];
     bossUnit = null;
     
-    document.getElementById('levelDisplay').innerText = `Campaign Level: ${currentLevel} / 36`;
-    if (isGameCleared) {
-        document.getElementById('freeplaySelect').value = currentLevel;
-    }
+    document.getElementById('levelDisplay').innerText = `CAMPAIGN LEVEL: ${currentLevel < 10 ? '0'+currentLevel : currentLevel}/36`;
+    if (isGameCleared) document.getElementById('freeplaySelect').value = currentLevel;
 
     let activeSquadSize = currentLevel >= 25 ? 10 : (currentLevel >= 12 ? 8 : 5);
     for (let i = 0; i < activeSquadSize; i++) {
+        let startX = 60 + (i * 20);
+        let startY = 120 + (i * 28);
         rangers.push({
             id: i,
-            x: 60 + (i * 20),
-            y: 120 + (i * 28),
+            x: startX,
+            y: startY,
+            originX: startX,
+            originY: startY,
             color: RANGER_COLORS[i],
-            hp: 240,       // TUNED UP: Upgraded from 120 for better squad defense
+            hp: 240,       
             maxHp: 240,
             size: 10,
             weaponMode: i % 2 === 0 ? "SWORD_SHIELD" : "MORPH_BLASTER",
             shieldUp: false,
-            specialCooldown: 100 + Math.random() * 200,
-            specialActiveTimer: 0
+            specialCooldown: 100 + Math.random() * 150,
+            lungeState: "READY", 
+            lungeTimer: 0,
+            targetEnemy: null
         });
     }
 
-    let enemyCount = 6 + currentLevel;
+    let enemyCount = 5 + Math.floor(currentLevel * 0.7);
     for (let i = 0; i < enemyCount; i++) {
         enemies.push({
-            x: 450 + Math.random() * 300,
-            y: 40 + Math.random() * 360,
-            hp: 45,
+            id: Math.random(),
+            x: 500 + Math.random() * 260,
+            y: 50 + Math.random() * 350,
+            hp: 45 + (currentLevel * 3),
             isChicken: cluckProtocolActive,
             shootTimer: 60 + Math.random() * 120,
             eggTimer: Math.random() * 100
@@ -253,55 +220,22 @@ function initLevel() {
     }
 
     if (currentLevel === 35) {
-        bossUnit = {
-            name: "A-SQUAD ROGUE MEGAZORD",
-            color: "#2c3e50",
-            borderColor: "#e74c3c", 
-            size: 50,
-            hp: 2500,
-            maxHp: 2500,
-            isASquad: true,
-            isFinal: false,
-            x: 600,
-            y: 120
-        };
-        document.getElementById('monsterIntel').innerText = `JUDGEMENT TIME: ${bossUnit.name} (Rogue Elite Core Detected)`;
+        bossUnit = { name: "A-SQUAD ROGUE MEGAZORD", color: "#2c3e50", borderColor: "#e74c3c", size: 50, hp: 2500, maxHp: 2500, isASquad: true, isFinal: false, x: 600, y: 120 };
+        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: A-SQUAD DETECTED`;
     } else if (currentLevel === 36) {
-        bossUnit = {
-            name: "OMNI-CROWN PREMIER",
-            color: "#000000",
-            borderColor: "#9b59b6",
-            size: 65,
-            hp: 4000,
-            maxHp: 4000,
-            isASquad: false,
-            isFinal: true,
-            x: 600,
-            y: 120
-        };
-        document.getElementById('monsterIntel').innerText = `CRITICAL THREAT: ${bossUnit.name} (Ancient Cybernetic God Form)`;
+        bossUnit = { name: "OMNI-CROWN PREMIER", color: "#000000", borderColor: "#9b59b6", size: 65, hp: 4000, maxHp: 4000, isASquad: false, isFinal: true, x: 600, y: 120 };
+        document.getElementById('monsterIntel').innerText = `FINAL SHOWDOWN: OMNI-CROWN`;
     } else {
         let arch = MONSTER_ARCHETYPES[currentLevel % MONSTER_ARCHETYPES.length];
-        bossUnit = {
-            name: `${arch.name} v.${currentLevel}`,
-            color: arch.color,
-            borderColor: "#c0392b",
-            size: 32 + (currentLevel * 0.5),
-            hp: 250 + (currentLevel * 60),
-            maxHp: 250 + (currentLevel * 60),
-            isASquad: false,
-            isFinal: false,
-            x: 600,
-            y: 120
-        };
-        document.getElementById('monsterIntel').innerText = `Target: ${bossUnit.name}`;
+        bossUnit = { name: `${arch.name} v.${currentLevel}`, color: arch.color, borderColor: "#c0392b", size: 32 + (currentLevel * 0.5), hp: 250 + (currentLevel * 60), maxHp: 250 + (currentLevel * 60), isASquad: false, isFinal: false, x: 600, y: 120 };
+        document.getElementById('monsterIntel').innerText = `TARGET: ${bossUnit.name.toUpperCase()}`;
     }
 }
 
 function toggleCluckProtocol() {
     cluckProtocolActive = !cluckProtocolActive;
     const btn = document.getElementById('cluckToggle');
-    btn.innerText = cluckProtocolActive ? "Cluck Protocol: ON 🐔" : "Cluck Protocol: OFF";
+    btn.innerText = cluckProtocolActive ? "CLUCK PROTOCOL: ON 🐔" : "CLUCK PROTOCOL: OFF";
     btn.className = cluckProtocolActive ? "cluck-btn active" : "cluck-btn";
     initLevel();
 }
@@ -329,6 +263,12 @@ function update() {
         return;
     }
 
+    // Update cosmetic visual slashes
+    for (let i = meleeEffects.length - 1; i >= 0; i--) {
+        meleeEffects[i].life--;
+        if (meleeEffects[i].life <= 0) meleeEffects.splice(i, 1);
+    }
+
     if (gamePhase === "SQUAD_BRAWL") {
         if (enemies.length === 0 && rangers.length > 0) {
             gamePhase = "MEGAZORD_DUEL";
@@ -339,11 +279,11 @@ function update() {
         enemies.forEach(e => {
             if (rangers.length > 0) {
                 let target = rangers[Math.floor(Math.random() * rangers.length)];
-                let dx = target.x - e.x;
-                let dy = target.y - e.y;
+                let dx = target.originX - e.x;
+                let dy = target.originY - e.y;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 
-                if (dist > 150) {
+                if (dist > 180) {
                     e.x += (dx / dist) * 0.9;
                     e.y += (dy / dist) * 0.9;
                 }
@@ -365,50 +305,88 @@ function update() {
         });
 
         rangers.forEach(r => {
-            if (enemies.length > 0) {
-                let target = enemies[0];
-                let dx = target.x - r.x;
-                let dy = target.y - r.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
+            if (r.weaponMode === "SWORD_SHIELD") {
+                if (r.lungeState === "READY") {
+                    if (enemies.length > 0) {
+                        let closest = enemies[0];
+                        let minDist = Infinity;
+                        enemies.forEach(e => {
+                            let d = Math.sqrt((e.x - r.x)**2 + (e.y - r.y)**2);
+                            if (d < minDist) { minDist = d; closest = e; }
+                        });
 
-                if (r.specialCooldown > 0) r.specialCooldown--;
-
-                if (r.weaponMode === "SWORD_SHIELD") {
-                    // FIXED SWORD MELEE RUNTIME TRACKING
-                    if (r.specialCooldown <= 0 && dist < 150 && dist > 35) {
-                        r.specialCooldown = 300 + Math.random() * 150;
-                        r.specialActiveTimer = 15; 
-                        
-                        // Lunge directly into dynamic range safely instead of overshooting
-                        r.x += (dx / dist) * (dist - 20); 
-                        r.y += (dy / dist) * (dist - 20);
-                        playTone(220, 0.25, 'sawtooth', 0.15); 
-                        
-                        // Sweeping hit across the enemy vanguard
-                        enemies.slice(0, 3).forEach(en => en.hp -= 30); 
+                        if (minDist < 250) {
+                            r.lungeState = "FORWARD";
+                            r.lungeTimer = 0;
+                            r.targetEnemy = closest.id;
+                        }
                     }
+                }
 
-                    if (r.specialActiveTimer > 0) {
-                        r.specialActiveTimer--;
-                    }
-
-                    // Standard tracking logic
-                    if (dist > 22) {
-                        r.x += (dx / dist) * 2.5;
-                        r.y += (dy / dist) * 2.5;
+                if (r.lungeState === "FORWARD") {
+                    let target = enemies.find(e => e.id === r.targetEnemy) || enemies[0];
+                    if (target) {
+                        let tx = target.x - 20;
+                        let ty = target.y;
+                        r.x += (tx - r.x) * 0.25;
+                        r.y += (ty - r.y) * 0.25;
                         r.shieldUp = false;
+
+                        let distToTarget = Math.sqrt((target.x - r.x)**2 + (target.y - r.y)**2);
+                        if (distToTarget < 30 || r.lungeTimer > 12) {
+                            r.lungeState = "IMPACT";
+                            r.lungeTimer = 0;
+                            target.hp -= 40; 
+                            
+                            // Inject actual visible sword strike configuration into array
+                            meleeEffects.push({ x: target.x, y: target.y, life: 10 });
+                            playTone(280, 0.15, 'sawtooth', 0.15);
+
+                            if (target.hp <= 0) {
+                                let idx = enemies.indexOf(target);
+                                if (idx > -1) enemies.splice(idx, 1);
+                                playExplosionSound();
+                            }
+                        }
                     } else {
-                        // Embedded in combat zone: switch to high defense state
-                        target.hp -= 0.8;
-                        r.shieldUp = true;
+                        r.lungeState = "RETREAT";
                     }
-                } else if (r.weaponMode === "MORPH_BLASTER") {
-                    if (dist < 180) {
-                        r.x -= (dx / dist) * 1.0;
+                    r.lungeTimer++;
+                }
+
+                if (r.lungeState === "IMPACT") {
+                    r.lungeTimer++;
+                    r.shieldUp = true;
+                    if (r.lungeTimer > 6) {
+                        r.lungeState = "RETREAT";
+                        r.lungeTimer = 0;
                     }
+                }
+
+                if (r.lungeState === "RETREAT") {
+                    r.x += (r.originX - r.x) * 0.2;
+                    r.y += (r.originY - r.y) * 0.2;
+                    r.shieldUp = true;
+
+                    let distHome = Math.sqrt((r.originX - r.x)**2 + (r.originY - r.y)**2);
+                    if (distHome < 5) {
+                        r.x = r.originX;
+                        r.y = r.originY;
+                        r.lungeState = "READY";
+                    }
+                }
+
+            } else if (r.weaponMode === "MORPH_BLASTER") {
+                if (enemies.length > 0) {
+                    let target = enemies[0];
+                    let dx = target.x - r.x;
+                    let dy = target.y - r.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (r.specialCooldown > 0) r.specialCooldown--;
 
                     if (r.specialCooldown <= 0 && Math.random() < 0.05) {
-                        r.specialCooldown = 250 + Math.random() * 200;
+                        r.specialCooldown = 200 + Math.random() * 150;
                         projectiles.push({ x: r.x, y: r.y, type: 'DELTA_BURST', vx: 7, vy: (target.y - r.y) / (dist || 1) * 2.5, color: '#f39c12' });
                         playTone(660, 0.2, 'square', 0.12);
                     }
@@ -474,9 +452,7 @@ function update() {
             }
         }
 
-        if (rangers.length === 0) {
-            initLevel(); 
-        }
+        if (rangers.length === 0) initLevel(); 
     } else if (gamePhase === "MEGAZORD_DUEL") {
         if (!bossUnit) return; 
 
@@ -517,9 +493,7 @@ function update() {
             }
         }
 
-        if (bossUnit.hp <= 0) {
-            nextLevel();
-        }
+        if (bossUnit.hp <= 0) nextLevel();
     }
 }
 
@@ -528,12 +502,21 @@ function draw() {
 
     if (gamePhase === "SQUAD_INIT" || transitionFreeze > 0) {
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 18px monospace';
-        ctx.fillText("SYNCHRONIZING REVOLUTION MATRIX...", 230, 220);
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText("SYNCHRONIZING REVOLUTION MATRIX...", 240, 220);
         return;
     }
 
     if (gamePhase === "SQUAD_BRAWL") {
+        // Draw real-time sword slashes behind actors
+        meleeEffects.forEach(eff => {
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(eff.x, eff.y, 25, 0.7 * Math.PI, 1.8 * Math.PI);
+            ctx.stroke();
+        });
+
         rangers.forEach(r => {
             ctx.save();
             ctx.fillStyle = r.color;
@@ -541,24 +524,18 @@ function draw() {
             ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
             ctx.fill();
 
-            if (r.specialActiveTimer > 0) {
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
-
             if (r.weaponMode === "SWORD_SHIELD") {
                 ctx.strokeStyle = '#f1c40f'; 
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2.5;
                 ctx.beginPath();
                 ctx.moveTo(r.x, r.y);
-                ctx.lineTo(r.x + 8, r.y - 6);
+                ctx.lineTo(r.x + 10, r.y - 4);
                 ctx.stroke();
 
                 if (r.shieldUp) {
                     ctx.fillStyle = 'rgba(52, 152, 219, 0.6)'; 
                     ctx.beginPath();
-                    ctx.arc(r.x + 6, r.y, 7, -Math.PI/2, Math.PI/2);
+                    ctx.arc(r.x + 6, r.y, 8, -Math.PI/2, Math.PI/2);
                     ctx.fill();
                 }
             } else {
@@ -606,7 +583,6 @@ function draw() {
         if (!bossUnit) return;
 
         ctx.save();
-        // --- ALLIES: S.P.D. SWAT MEGAZORD HOVER CHASSIS ---
         ctx.fillStyle = '#1f2937';
         ctx.fillRect(60, 160, 45, 70);  
         ctx.fillRect(175, 160, 45, 70); 
@@ -621,7 +597,6 @@ function draw() {
         ctx.fillStyle = '#06b6d4'; 
         ctx.fillRect(128, 120, 24, 5);
 
-        // SHOW-ACCURATE DUAL TWIN CANNONS
         ctx.fillStyle = '#374151';
         ctx.fillRect(160, 190, 35, 14);  
         ctx.fillRect(160, 230, 35, 14);  
@@ -630,10 +605,9 @@ function draw() {
         ctx.fillRect(190, 234, 6, 6);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px monospace';
-        ctx.fillText("S.W.A.T. DUAL STRIKER PROTOCOL", 50, 85);
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText("S.W.A.T. DUAL STRIKER ENGAGED", 50, 85);
 
-        // --- ADVERSARIES RENDERING ARRAY ---
         if (bossUnit.isFinal) {
             ctx.fillStyle = '#4c1d95';
             ctx.fillRect(bossUnit.x - 20, bossUnit.y - 30, bossUnit.size * 2.5, bossUnit.size * 3.5);
@@ -670,13 +644,11 @@ function draw() {
             ctx.strokeRect(bossUnit.x, bossUnit.y, bossUnit.size * 1.5, bossUnit.size * 2);
         }
 
-        // Projectiles Loop
         projectiles.forEach(p => {
             ctx.fillStyle = p.color;
             ctx.fillRect(p.x, p.y, 14, 3);
         });
 
-        // Duel Interface Health Bar
         ctx.fillStyle = '#7f1d1d';
         ctx.fillRect(220, 30, 360, 16);
         ctx.fillStyle = '#22c55e';
@@ -692,7 +664,6 @@ function runLoop() {
     requestAnimationFrame(runLoop);
 }
 
-// Spark up system operations cleanly
 loadProgress();
 initLevel();
 runLoop();
